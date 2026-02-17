@@ -128,22 +128,26 @@ class RedisManager:
         # On Windows, we want to detach or minimize?
         # subprocess.Popen with creationflags can hide it or make it valid.
         
-        kwargs = {}
         if platform.system() == "Windows":
-            # CREATE_NEW_CONSOLE = 0x00000010
+            # CREATE_NEW_PROCESS_GROUP = 0x00000200
             # DETACHED_PROCESS = 0x00000008
-            # We want it to run. If we detach, it runs headless. 
-            # User wanted visible window for debug? Or minimal?
-            # 'hydra onboard' is interactive. Let's run it headless but track it.
-            # If user kills terminal, redis might die if not detached.
-            # Let's try standard Popen first.
-            pass
+            # This allows Redis to keep running even if the shell closes or parent dies.
+            kwargs["creationflags"] = 0x00000008 | 0x00000200
+            kwargs["shell"] = False # Must be False for detached?
+            
+            # On Windows, we need to hide the window or make it separate.
+            # DETACHED_PROCESS makes it run without a console.
+            # If user wants to see it, we would use 'start' command, but then we lose control.
+            # Let's trust it runs.
+        else:
+            # On Posix, we can use start_new_session?
+            kwargs["start_new_session"] = True
 
         self._process = subprocess.Popen(
             [str(binary)],
             stdout=subprocess.DEVNULL,
             stderr=subprocess.DEVNULL,
-            # shell=False
+            **kwargs
         )
 
         # Wait for checking

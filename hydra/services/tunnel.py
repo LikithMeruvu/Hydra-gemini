@@ -120,26 +120,22 @@ class TunnelService:
 
         url_pattern = re.compile(r"(https://[a-z0-9\-]+\.trycloudflare\.com)")
 
-        for _ in range(timeout * 10):  # check every 100ms
-            if self._process is None or self._process.poll() is not None:
+            if self._process.poll() is not None:
                 # Process died — read any output
                 if self._process and self._process.stderr:
                     err = self._process.stderr.read()
                     raise RuntimeError(f"cloudflared exited: {err[:300]}")
                 raise RuntimeError("cloudflared process not running")
 
+            # Parse line by line
             if self._process.stderr:
-                # Non-blocking read
-                import selectors
-                try:
-                    line = self._process.stderr.readline()
-                    if line:
-                        match = url_pattern.search(line)
-                        if match:
-                            return match.group(1)
-                except Exception:
-                    pass
-
+                line = self._process.stderr.readline()
+                if line:
+                    # logger.info(f"Tunnel Log: {line.strip()}") # Debug
+                    match = url_pattern.search(line)
+                    if match:
+                        return match.group(1)
+            
             await asyncio.sleep(0.1)
 
         raise RuntimeError("Timed out waiting for cloudflared URL")

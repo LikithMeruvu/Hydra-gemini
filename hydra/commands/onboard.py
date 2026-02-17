@@ -51,9 +51,13 @@ def onboard(
     keys_path = Path(file)
     if not keys_path.exists():
         console.print(f"\n[yellow]⚠️ {file} not found![/yellow]")
-        create = typer.confirm("Do you want to create a template keys.json?", default=True)
-        if create:
-            # Create a dummy file
+        choice = console.prompt(
+            "Press [bold]C[/bold] to Create a template, or enter a [bold]Path[/bold] to existing keys:",
+            default="C"
+        )
+        
+        if choice.lower() == "c":
+            # Create template
             import json
             template = [
                 {
@@ -65,12 +69,17 @@ def onboard(
             keys_path.write_text(json.dumps(template, indent=2))
             console.print(f"[green]✅ Created {file}.[/green]")
             console.print(f"[bold]👉 Please open {file} and add your API keys now.[/bold]")
-            
-            # Wait for user
             typer.confirm("Press Enter once you have added your keys to the file...", default=True)
+            
         else:
-            console.print("[red]Cannot proceed without keys.[/red]")
-            raise typer.Exit(1)
+            # Assume it's a path
+            new_path = Path(choice.strip('"').strip("'"))
+            if new_path.exists():
+                keys_path = new_path
+                console.print(f"[green]✅ Using keys from {keys_path}[/green]")
+            else:
+                console.print(f"[red]❌ File '{new_path}' not found.[/red]")
+                raise typer.Exit(1)
 
     # 3. Run Setup Validation
     console.print("\n[bold cyan]🔑 Validating Keys...[/bold cyan]")
