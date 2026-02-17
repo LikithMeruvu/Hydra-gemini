@@ -128,6 +128,7 @@ class RedisManager:
         # On Windows, we want to detach or minimize?
         # subprocess.Popen with creationflags can hide it or make it valid.
         
+        kwargs = {}
         if platform.system() == "Windows":
             # CREATE_NEW_PROCESS_GROUP = 0x00000200
             # DETACHED_PROCESS = 0x00000008
