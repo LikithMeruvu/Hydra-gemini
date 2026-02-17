@@ -95,6 +95,21 @@ If you prefer to do it yourself:
 
 ---
 
+## 🔌 Integrations
+
+### VS Code (Roo Code / Cline)
+You can use Hydra as the backend for AI coding assistants like **Roo Code** or **Cline**.
+
+1.  **API Provider**: `OpenAI Compatible`
+2.  **Base URL**: `http://localhost:8000/v1` (or your Tunnel URL)
+3.  **API Key**: `sk-hydra-local` (or generate one with `hydra tokens create`)
+4.  **Model ID**: `gemini-2.5-flash` (or `gemini-2.5-pro`)
+
+### Cursor / other OpenAI-compatible tools
+Hydra works with any tool that supports the OpenAI API format. Just point the `baseUrl` to Hydra and use any model name.
+
+---
+
 ## ⚙️ Configuration (keys.json)
 
 Create a file named `keys.json` in the root directory. This is where you store your pool of keys.
