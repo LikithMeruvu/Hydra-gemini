@@ -70,19 +70,18 @@ Do not create multiple keys in the same project; they share the same quota! Inst
 
 ## 📦 Installation
 
-### Prerequisites
--   **Python 3.10+**
--   **Redis Server**: Hydra uses Redis for high-speed rate tracking.
-    -   **Windows**: Install via WSL or use [Memurai](https://www.memurai.com/) / Docker.
-    -   **Mac**: `brew install redis`
-    -   **Linux**: `sudo apt install redis-server`
+### ⚡ Automatic (Windows)
+Just run the installer script. It will auto-download Redis and set everything up.
+1.  Double-click `install_windows.bat`.
+2.  Follow the prompts.
+3.  Double-click `start.bat` to run.
 
-### Install Hydra
-```bash
-git clone https://github.com/LikithMeruvu/Hydra-gemini.git
-cd Hydra-gemini
-pip install -e .
-```
+### 🐧 Manual (Mac/Linux)
+1.  **Install Redis**: `brew install redis` or `sudo apt install redis-server`.
+2.  **Install Hydra**:
+    ```bash
+    pip install -e .
+    ```
 
 ---
 
