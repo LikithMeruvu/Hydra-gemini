@@ -1,0 +1,23 @@
+# TUI Default Configuration
+# Override with environment variables or Redis config
+
+server:
+  host: "127.0.0.1"
+  port: 8000
+
+router:
+  model_priority:
+    - "gemini-3-flash-preview"
+    - "gemini-2.5-pro"
+    - "gemini-2.5-flash"
+    - "gemini-2.5-flash-lite"
+  health_weight: 0.4
+  capacity_weight: 0.6
+  retry_attempts: 3
+  fallback_enabled: true
+
+redis:
+  url: "redis://localhost:6379/0"
+
+logging:
+  level: "INFO"

@@ -1,0 +1,1539 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hydra — Gemini Gateway</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="icon" type="image/png" href="/static/logo_symbol.png">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+  <link rel="stylesheet"
+    href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/styles/github-dark.min.css">
+  <script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/highlight.min.js"></script>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box
+    }
+
+    :root {
+      --bg: #0a0a0f;
+      --bg2: #12121a;
+      --bg3: #1a1a2e;
+      --bg4: #22223a;
+      --text: #e4e4e7;
+      --text2: #a1a1aa;
+      --text3: #71717a;
+      --accent: #8b5cf6;
+      --accent2: #a78bfa;
+      --accent3: #6d28d9;
+      --green: #22c55e;
+      --red: #ef4444;
+      --yellow: #eab308;
+      --cyan: #06b6d4;
+      --border: #27273a;
+      --glow: rgba(139, 92, 246, .15);
+    }
+
+    body {
+      font-family: 'Inter', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      height: 100vh;
+      display: flex;
+      overflow: hidden
+    }
+
+    .sidebar {
+      width: 260px;
+      background: var(--bg2);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0
+    }
+
+    .logo {
+      padding: 20px;
+      font-size: 18px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      border-bottom: 1px solid var(--border)
+    }
+
+    .logo span {
+      background: linear-gradient(135deg, var(--accent), var(--cyan));
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent
+    }
+
+    .nav {
+      flex: 1;
+      padding: 12px;
+      overflow-y: auto
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 14px;
+      border-radius: 8px;
+      cursor: pointer;
+      color: var(--text2);
+      font-size: 14px;
+      font-weight: 500;
+      transition: all .15s
+    }
+
+    .nav-item:hover {
+      background: var(--bg3);
+      color: var(--text)
+    }
+
+    .nav-item.active {
+      background: var(--glow);
+      color: var(--accent2);
+      border: 1px solid rgba(139, 92, 246, .2)
+    }
+
+    .nav-icon {
+      font-size: 18px;
+      width: 24px;
+      text-align: center
+    }
+
+    .nav-section {
+      padding: 8px 14px;
+      font-size: 11px;
+      color: var(--text3);
+      text-transform: uppercase;
+      letter-spacing: .5px;
+      margin-top: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between
+    }
+
+    .nav-section button {
+      background: none;
+      border: none;
+      color: var(--accent2);
+      cursor: pointer;
+      font-size: 16px;
+      padding: 0 4px
+    }
+
+    .session-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 7px 14px;
+      border-radius: 6px;
+      cursor: pointer;
+      color: var(--text3);
+      font-size: 12px;
+      transition: all .15s;
+      position: relative
+    }
+
+    .session-item:hover {
+      background: var(--bg3);
+      color: var(--text2)
+    }
+
+    .session-item.active-session {
+      color: var(--accent2);
+      background: rgba(139, 92, 246, .08)
+    }
+
+    .session-item .del-btn {
+      position: absolute;
+      right: 8px;
+      opacity: 0;
+      background: none;
+      border: none;
+      color: var(--red);
+      cursor: pointer;
+      font-size: 14px
+    }
+
+    .session-item:hover .del-btn {
+      opacity: .7
+    }
+
+    .sidebar-footer {
+      padding: 16px;
+      border-top: 1px solid var(--border);
+      font-size: 12px;
+      color: var(--text3)
+    }
+
+    .status-dot {
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      margin-right: 6px
+    }
+
+    .status-dot.online {
+      background: var(--green);
+      box-shadow: 0 0 6px var(--green)
+    }
+
+    .status-dot.offline {
+      background: var(--red)
+    }
+
+    .main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden
+    }
+
+    .panel {
+      display: none;
+      flex: 1;
+      flex-direction: column;
+      overflow: hidden
+    }
+
+    .panel.active {
+      display: flex
+    }
+
+    .chat-header {
+      padding: 12px 24px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 12px
+    }
+
+    .chat-header h2 {
+      font-size: 16px;
+      font-weight: 600;
+      margin-right: auto
+    }
+
+    .model-select {
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 13px;
+      font-family: inherit;
+      cursor: pointer
+    }
+
+    .model-select:focus {
+      outline: none;
+      border-color: var(--accent)
+    }
+
+    .messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px
+    }
+
+    .msg {
+      max-width: 85%;
+      padding: 14px 18px;
+      border-radius: 14px;
+      font-size: 14px;
+      line-height: 1.7;
+      word-wrap: break-word
+    }
+
+    .msg.user {
+      align-self: flex-end;
+      background: var(--accent3);
+      color: #fff;
+      border-bottom-right-radius: 4px
+    }
+
+    .msg.assistant {
+      align-self: flex-start;
+      background: var(--bg3);
+      border-bottom-left-radius: 4px
+    }
+
+    .msg .msg-text {
+      white-space: pre-wrap
+    }
+
+    .msg.assistant .msg-text {
+      white-space: normal
+    }
+
+    .msg.assistant .msg-text p {
+      margin: 6px 0
+    }
+
+    .code-block {
+      position: relative;
+      margin: 10px 0;
+      border-radius: 8px;
+      overflow: hidden;
+      background: #0d1117;
+      border: 1px solid var(--border)
+    }
+
+    .code-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 6px 12px;
+      background: #161b22;
+      font-size: 11px;
+      color: var(--text3);
+      font-family: 'Inter', sans-serif
+    }
+
+    .code-header .lang {
+      text-transform: uppercase;
+      letter-spacing: .5px;
+      font-weight: 600
+    }
+
+    .copy-btn {
+      background: none;
+      border: 1px solid var(--border);
+      color: var(--text3);
+      padding: 2px 10px;
+      border-radius: 4px;
+      font-size: 11px;
+      cursor: pointer;
+      font-family: inherit;
+      transition: all .15s
+    }
+
+    .copy-btn:hover {
+      border-color: var(--accent);
+      color: var(--accent2)
+    }
+
+    .copy-btn.copied {
+      color: var(--green);
+      border-color: var(--green)
+    }
+
+    .code-block pre {
+      margin: 0;
+      padding: 12px;
+      overflow-x: auto;
+      font-size: 13px;
+      line-height: 1.5
+    }
+
+    .code-block pre code {
+      background: none !important;
+      padding: 0 !important;
+      font-family: 'Consolas', 'Monaco', 'Courier New', monospace
+    }
+
+    .msg.assistant .msg-text code:not(.hljs) {
+      background: var(--bg);
+      padding: 1px 5px;
+      border-radius: 3px;
+      font-size: 12px;
+      font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+      border: 1px solid var(--border)
+    }
+
+    .katex-display {
+      margin: 10px 0;
+      overflow-x: auto;
+      padding: 8px
+    }
+
+    .katex {
+      font-size: 1.05em
+    }
+
+    .citation {
+      display: inline-block;
+      background: rgba(6, 182, 212, .12);
+      color: var(--cyan);
+      padding: 1px 6px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 600;
+      margin: 0 1px;
+      cursor: default
+    }
+
+    .msg .msg-images {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 8px
+    }
+
+    .msg .msg-images img {
+      max-width: 200px;
+      max-height: 200px;
+      border-radius: 8px;
+      border: 1px solid var(--border)
+    }
+
+    .msg .meta {
+      font-size: 11px;
+      color: var(--text3);
+      margin-top: 10px;
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      padding-top: 6px;
+      border-top: 1px solid rgba(255, 255, 255, .05)
+    }
+
+    .meta .tool-badge {
+      padding: 1px 6px;
+      border-radius: 4px;
+      font-size: 10px;
+      font-weight: 600;
+      background: rgba(6, 182, 212, .12);
+      color: var(--cyan)
+    }
+
+    .typing {
+      align-self: flex-start;
+      background: var(--bg3);
+      padding: 12px 20px;
+      border-radius: 12px;
+      border-bottom-left-radius: 4px
+    }
+
+    .typing span {
+      display: inline-block;
+      width: 6px;
+      height: 6px;
+      background: var(--text3);
+      border-radius: 50%;
+      margin: 0 2px;
+      animation: bounce .6s infinite alternate
+    }
+
+    .typing span:nth-child(2) {
+      animation-delay: .15s
+    }
+
+    .typing span:nth-child(3) {
+      animation-delay: .3s
+    }
+
+    @keyframes bounce {
+      to {
+        opacity: .3;
+        transform: translateY(-4px)
+      }
+    }
+
+    .file-preview-bar {
+      display: flex;
+      gap: 8px;
+      padding-bottom: 8px;
+      flex-wrap: wrap
+    }
+
+    .preview-item {
+      position: relative;
+      border-radius: 8px;
+      overflow: hidden;
+      border: 1px solid var(--border)
+    }
+
+    .preview-item.img-preview {
+      width: 60px;
+      height: 60px
+    }
+
+    .preview-item.img-preview img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover
+    }
+
+    .preview-item.file-preview {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 10px;
+      background: var(--bg3);
+      font-size: 12px;
+      color: var(--text2)
+    }
+
+    .preview-item .remove-btn {
+      position: absolute;
+      top: -2px;
+      right: -2px;
+      width: 18px;
+      height: 18px;
+      background: var(--red);
+      color: #fff;
+      border: none;
+      border-radius: 50%;
+      font-size: 11px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1
+    }
+
+    .chat-input-area {
+      padding: 12px 24px;
+      border-top: 1px solid var(--border);
+      background: var(--bg2)
+    }
+
+    .input-row {
+      display: flex;
+      gap: 8px;
+      align-items: flex-end
+    }
+
+    .input-btns {
+      display: flex;
+      gap: 4px;
+      flex-shrink: 0
+    }
+
+    .tool-btn {
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      color: var(--text3);
+      width: 36px;
+      height: 36px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 15px;
+      transition: all .15s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0
+    }
+
+    .tool-btn:hover {
+      border-color: var(--accent);
+      color: var(--accent2)
+    }
+
+    .tool-btn.active {
+      background: rgba(6, 182, 212, .12);
+      border-color: var(--cyan);
+      color: var(--cyan)
+    }
+
+    .chat-input {
+      flex: 1;
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 10px 14px;
+      border-radius: 10px;
+      font-size: 14px;
+      font-family: inherit;
+      resize: none;
+      min-height: 40px;
+      max-height: 120px
+    }
+
+    .chat-input:focus {
+      outline: none;
+      border-color: var(--accent)
+    }
+
+    .send-btn {
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      padding: 10px 18px;
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all .15s;
+      height: 40px;
+      flex-shrink: 0
+    }
+
+    .send-btn:hover {
+      background: var(--accent2)
+    }
+
+    .send-btn:disabled {
+      opacity: .4;
+      cursor: not-allowed
+    }
+
+    #imageInput,
+    #fileInput {
+      display: none
+    }
+
+    /* Dashboard / Keys / Tokens shared */
+    .dashboard {
+      flex: 1;
+      overflow-y: auto;
+      padding: 24px
+    }
+
+    .dash-header {
+      margin-bottom: 24px
+    }
+
+    .dash-header h2 {
+      font-size: 20px;
+      font-weight: 700;
+      margin-bottom: 4px
+    }
+
+    .dash-header p {
+      color: var(--text2);
+      font-size: 14px
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 14px;
+      margin-bottom: 24px
+    }
+
+    .stat-card {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px
+    }
+
+    .stat-card .label {
+      font-size: 12px;
+      color: var(--text3);
+      text-transform: uppercase;
+      letter-spacing: .5px;
+      margin-bottom: 6px
+    }
+
+    .stat-card .value {
+      font-size: 24px;
+      font-weight: 700
+    }
+
+    .stat-card .value.green {
+      color: var(--green)
+    }
+
+    .stat-card .value.cyan {
+      color: var(--cyan)
+    }
+
+    .stat-card .value.accent {
+      color: var(--accent2)
+    }
+
+    .stat-card .value.red {
+      color: var(--red)
+    }
+
+    .section-title {
+      font-size: 16px;
+      font-weight: 600;
+      margin-bottom: 12px
+    }
+
+    .keys-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px
+    }
+
+    .keys-table th {
+      text-align: left;
+      padding: 10px 12px;
+      color: var(--text3);
+      font-weight: 500;
+      border-bottom: 1px solid var(--border);
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: .5px
+    }
+
+    .keys-table td {
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--border)
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 10px;
+      font-size: 11px;
+      font-weight: 600
+    }
+
+    .badge.active {
+      background: rgba(34, 197, 94, .15);
+      color: var(--green)
+    }
+
+    .badge.disabled {
+      background: rgba(239, 68, 68, .15);
+      color: var(--red)
+    }
+
+    .health-bar {
+      width: 60px;
+      height: 6px;
+      background: var(--bg);
+      border-radius: 3px;
+      overflow: hidden;
+      display: inline-block;
+      vertical-align: middle;
+      margin-right: 6px
+    }
+
+    .health-bar-fill {
+      height: 100%;
+      border-radius: 3px
+    }
+
+    .model-tag {
+      display: inline-block;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 10px;
+      background: var(--bg4);
+      color: var(--text2);
+      margin: 1px 2px
+    }
+
+    /* Token create */
+    .token-create {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 20px;
+      align-items: center
+    }
+
+    .token-create input {
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 8px 14px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-family: inherit;
+      flex: 1
+    }
+
+    .token-create input:focus {
+      outline: none;
+      border-color: var(--accent)
+    }
+
+    .token-create button {
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      padding: 8px 18px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      white-space: nowrap
+    }
+
+    .token-create button:hover {
+      background: var(--accent2)
+    }
+
+    .token-reveal {
+      background: var(--bg3);
+      border: 1px solid var(--green);
+      border-radius: 8px;
+      padding: 14px;
+      margin-bottom: 20px;
+      font-family: 'Consolas', monospace;
+      font-size: 13px;
+      word-break: break-all;
+      color: var(--green);
+      position: relative
+    }
+
+    .token-reveal .close-reveal {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      background: none;
+      border: none;
+      color: var(--text3);
+      cursor: pointer;
+      font-size: 14px
+    }
+
+    /* Docs */
+    .docs-content {
+      flex: 1;
+      overflow-y: auto;
+      padding: 24px 32px;
+      line-height: 1.8;
+      font-size: 14px
+    }
+
+    .docs-content h1 {
+      font-size: 24px;
+      font-weight: 700;
+      margin: 0 0 8px;
+      color: var(--text)
+    }
+
+    .docs-content h2 {
+      font-size: 18px;
+      font-weight: 700;
+      margin: 28px 0 10px;
+      color: var(--accent2);
+      padding-bottom: 6px;
+      border-bottom: 1px solid var(--border)
+    }
+
+    .docs-content h3 {
+      font-size: 15px;
+      font-weight: 600;
+      margin: 18px 0 6px;
+      color: var(--text)
+    }
+
+    .docs-content p {
+      margin: 6px 0;
+      color: var(--text2)
+    }
+
+    .docs-content ul {
+      margin: 6px 0 6px 18px;
+      color: var(--text2)
+    }
+
+    .docs-content li {
+      margin: 3px 0
+    }
+
+    .docs-content .endpoint {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 16px;
+      margin: 12px 0
+    }
+
+    .docs-content .endpoint .method {
+      display: inline-block;
+      padding: 2px 10px;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: 700;
+      font-family: 'Consolas', monospace;
+      margin-right: 8px
+    }
+
+    .docs-content .method.get {
+      background: rgba(34, 197, 94, .15);
+      color: var(--green)
+    }
+
+    .docs-content .method.post {
+      background: rgba(139, 92, 246, .15);
+      color: var(--accent2)
+    }
+
+    .docs-content .method.delete {
+      background: rgba(239, 68, 68, .15);
+      color: var(--red)
+    }
+
+    .docs-content .endpoint .path {
+      font-family: 'Consolas', monospace;
+      font-size: 14px;
+      font-weight: 600
+    }
+
+    .docs-content .endpoint .desc {
+      color: var(--text2);
+      font-size: 13px;
+      margin-top: 6px
+    }
+
+    .docs-content pre {
+      background: #0d1117;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px;
+      overflow-x: auto;
+      font-size: 13px;
+      margin: 10px 0
+    }
+
+    .docs-content code {
+      font-family: 'Consolas', 'Monaco', monospace;
+      font-size: 13px
+    }
+
+    .docs-content .note {
+      background: rgba(6, 182, 212, .08);
+      border: 1px solid rgba(6, 182, 212, .2);
+      border-radius: 8px;
+      padding: 12px 16px;
+      margin: 12px 0;
+      color: var(--cyan);
+      font-size: 13px
+    }
+
+    .docs-content .warn {
+      background: rgba(234, 179, 8, .08);
+      border: 1px solid rgba(234, 179, 8, .2);
+      border-radius: 8px;
+      padding: 12px 16px;
+      margin: 12px 0;
+      color: var(--yellow);
+      font-size: 13px
+    }
+
+    ::-webkit-scrollbar {
+      width: 6px
+    }
+
+    ::-webkit-scrollbar-track {
+      background: transparent
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: var(--border);
+      border-radius: 3px
+    }
+
+    .empty {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      flex: 1;
+      color: var(--text3);
+      gap: 12px
+    }
+
+    .empty .icon {
+      font-size: 48px;
+      opacity: .4
+    }
+
+    .empty p {
+      font-size: 14px
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="sidebar">
+    <div class="logo">
+      <img src="/static/logo_complete.png" alt="Hydra" style="height:40px;border-radius:6px;display:block">
+    </div>
+    <div class="nav">
+      <div class="nav-item active" data-panel="chat"><span class="nav-icon">💬</span> Chat</div>
+      <div class="nav-item" data-panel="dashboard"><span class="nav-icon">📊</span> Dashboard</div>
+      <div class="nav-item" data-panel="keys"><span class="nav-icon">🔑</span> API Keys</div>
+      <div class="nav-item" data-panel="tokens"><span class="nav-icon">🎫</span> Tokens</div>
+      <div class="nav-item" data-panel="docs"><span class="nav-icon">📚</span> Docs</div>
+      <div class="nav-section"><span>Sessions</span><button onclick="newSession()" title="New chat">＋</button></div>
+      <div id="sessionList"></div>
+    </div>
+    <div class="sidebar-footer">
+      <span class="status-dot online" id="statusDot"></span>
+      <span id="statusText">Checking...</span>
+    </div>
+  </div>
+
+  <div class="main">
+    <!-- Chat -->
+    <div class="panel active" id="panel-chat">
+      <div class="chat-header">
+        <h2>💬 Chat</h2>
+        <select class="model-select" id="modelSelect">
+          <option value="gemini-2.5-flash">2.5 Flash (Default)</option>
+          <option value="gemini-2.5-flash-lite">2.5 Flash-Lite (Fast)</option>
+          <option value="gemini-2.5-pro">2.5 Pro (Smartest)</option>
+          <option value="gemini-3-flash-preview">3 Flash Preview</option>
+        </select>
+      </div>
+      <div class="messages" id="messages">
+        <div class="empty">
+          <div class="icon">⚡</div>
+          <p>Start chatting — Hydra routes to the best available key</p>
+        </div>
+      </div>
+      <div class="chat-input-area">
+        <div class="file-preview-bar" id="filePreviewBar"></div>
+        <div class="input-row">
+          <div class="input-btns">
+            <button class="tool-btn" onclick="document.getElementById('imageInput').click()"
+              title="Attach image">📎</button>
+            <button class="tool-btn" onclick="document.getElementById('fileInput').click()"
+              title="Upload document">📄</button>
+            <button class="tool-btn" id="toggleSearch" onclick="toggleSearch()" title="Enable web search">🔍</button>
+          </div>
+          <input type="file" id="imageInput" accept="image/*" multiple onchange="handleImages(event)">
+          <input type="file" id="fileInput"
+            accept=".pdf,.txt,.md,.csv,.json,.xml,.html,.py,.js,.ts,.java,.c,.cpp,.h,.cs,.go,.rs,.rb,.php,.sh,.bat,.yml,.yaml,.toml,.ini,.cfg,.log,.sql"
+            multiple onchange="handleFiles(event)">
+          <textarea class="chat-input" id="chatInput" placeholder="Message... (paste images or attach files)"
+            rows="1"></textarea>
+          <button class="send-btn" id="sendBtn" onclick="sendMessage()">Send ➤</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Dashboard -->
+    <div class="panel" id="panel-dashboard">
+      <div class="dashboard">
+        <div class="dash-header">
+          <h2>📊 Dashboard</h2>
+          <p>Real-time gateway overview</p>
+        </div>
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="label">Status</div>
+            <div class="value green" id="st-status">—</div>
+          </div>
+          <div class="stat-card">
+            <div class="label">Active Keys</div>
+            <div class="value cyan" id="st-keys">—</div>
+          </div>
+          <div class="stat-card">
+            <div class="label">Today's Requests</div>
+            <div class="value accent" id="st-requests">—</div>
+          </div>
+          <div class="stat-card">
+            <div class="label">Success Rate</div>
+            <div class="value green" id="st-success">—</div>
+          </div>
+          <div class="stat-card">
+            <div class="label">Redis</div>
+            <div class="value green" id="st-redis">—</div>
+          </div>
+          <div class="stat-card">
+            <div class="label">Uptime</div>
+            <div class="value" id="st-uptime">—</div>
+          </div>
+        </div>
+        <div class="section-title">📝 Recent History</div>
+        <div id="historyList" style="font-size:13px;color:var(--text2)">No history yet.</div>
+      </div>
+    </div>
+
+    <!-- Keys -->
+    <div class="panel" id="panel-keys">
+      <div class="dashboard">
+        <div class="dash-header">
+          <h2>🔑 API Keys</h2>
+          <p>Gemini API key pool</p>
+        </div>
+        <table class="keys-table">
+          <thead>
+            <tr>
+              <th>Email</th>
+              <th>Status</th>
+              <th>Health</th>
+              <th>Models</th>
+              <th>Hash</th>
+            </tr>
+          </thead>
+          <tbody id="keysBody">
+            <tr>
+              <td colspan="5" style="color:var(--text3);text-align:center;padding:32px">Loading...</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Tokens -->
+    <div class="panel" id="panel-tokens">
+      <div class="dashboard">
+        <div class="dash-header">
+          <h2>🎫 API Tokens</h2>
+          <p>Generate tokens for remote API access. Share these with users who need to use your Hydra endpoint.</p>
+        </div>
+        <div class="token-create">
+          <input type="text" id="tokenName" placeholder="Token name (e.g. cursor-ide, friend-john)">
+          <button onclick="createToken()">+ Create Token</button>
+        </div>
+        <div id="tokenReveal" style="display:none"></div>
+        <div class="note"
+          style="background:rgba(6,182,212,.08);border:1px solid rgba(6,182,212,.2);border-radius:8px;padding:12px 16px;margin-bottom:20px;color:var(--cyan);font-size:13px">
+          ℹ️ When tokens exist, all <code>/v1/*</code> API endpoints require
+          <code>Authorization: Bearer &lt;token&gt;</code>. The admin panel (this page) is only accessible from
+          localhost.
+        </div>
+        <div class="section-title">Active Tokens</div>
+        <table class="keys-table">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Preview</th>
+              <th>Requests</th>
+              <th>Tokens Used</th>
+              <th>Created</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="tokensBody">
+            <tr>
+              <td colspan="6" style="color:var(--text3);text-align:center;padding:32px">Loading...</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Docs -->
+    <div class="panel" id="panel-docs">
+      <div class="docs-content" id="docsContent"></div>
+    </div>
+  </div>
+
+  <script>
+    const API = window.location.origin;
+    const MODEL_NAMES = {
+      'gemini-3-flash-preview': '3 Flash', 'gemini-2.5-pro': '2.5 Pro',
+      'gemini-2.5-flash': '2.5 Flash', 'gemini-2.5-flash-lite': '2.5 Lite',
+      'gemini-2.5-flash-image': '2.5 Img', 'gemini-embedding-001': 'Embed',
+    };
+
+    let sessions = JSON.parse(localStorage.getItem('tui_sessions') || '[]');
+    let activeSessionId = localStorage.getItem('tui_active_session') || null;
+    let pendingImages = [], pendingFiles = [], searchEnabled = false;
+
+    function genId() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 6); }
+
+    // ── Sessions ──
+    function newSession() { const s = { id: genId(), title: 'New Chat', messages: [], created: Date.now() }; sessions.unshift(s); activeSessionId = s.id; save(); renderSessions(); renderMessages(); }
+    function switchSession(id) { activeSessionId = id; save(); renderSessions(); renderMessages(); document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active')); document.querySelectorAll('.panel').forEach(p => p.classList.remove('active')); document.querySelector('[data-panel="chat"]').classList.add('active'); document.getElementById('panel-chat').classList.add('active'); }
+    function deleteSession(id, e) { e.stopPropagation(); sessions = sessions.filter(s => s.id !== id); if (activeSessionId === id) activeSessionId = sessions[0]?.id || null; save(); renderSessions(); renderMessages(); }
+    function getSession() { return sessions.find(s => s.id === activeSessionId); }
+    function save() {
+      try {
+        const lite = sessions.map(s => ({ ...s, messages: s.messages.map(m => { if (m.role === 'user' && Array.isArray(m.content)) { return { ...m, content: m.content.map(p => p.type === 'image_url' ? { type: 'text', text: '[📎 image]' } : p.type === 'file_data' ? { type: 'text', text: '[📄 file]' } : p) }; } return m; }) }));
+        localStorage.setItem('tui_sessions', JSON.stringify(lite));
+        localStorage.setItem('tui_active_session', activeSessionId);
+      } catch (e) { if (sessions.length > 5) { sessions.splice(5); try { localStorage.setItem('tui_sessions', JSON.stringify(sessions)); } catch { } } }
+    }
+    function renderSessions() {
+      const el = document.getElementById('sessionList');
+      if (!sessions.length) { el.innerHTML = '<div style="padding:8px 14px;font-size:12px;color:var(--text3)">No sessions</div>'; return; }
+      el.innerHTML = sessions.map(s => { const a = s.id === activeSessionId ? ' active-session' : ''; const t = s.title.length > 22 ? s.title.slice(0, 22) + '…' : s.title; return `<div class="session-item${a}" onclick="switchSession('${s.id}')">💬 ${t}<button class="del-btn" onclick="deleteSession('${s.id}',event)">✕</button></div>`; }).join('');
+    }
+
+    // ── Toggles & Files ──
+    function toggleSearch() { searchEnabled = !searchEnabled; document.getElementById('toggleSearch').classList.toggle('active', searchEnabled); }
+    function handleImages(e) { for (const f of e.target.files) { if (!f.type.startsWith('image/')) continue; const r = new FileReader(); r.onload = ev => { const [h, b] = ev.target.result.split(','); pendingImages.push({ url: ev.target.result, base64: b, mime: h.split(':')[1].split(';')[0], name: f.name }); renderPreviews(); }; r.readAsDataURL(f); } e.target.value = ''; }
+    function handleFiles(e) { for (const f of e.target.files) { const r = new FileReader(); if (f.type === 'application/pdf' || f.type.startsWith('image/')) { r.onload = ev => { const [h, b] = ev.target.result.split(','); pendingFiles.push({ base64: b, mime: f.type, name: f.name }); renderPreviews(); }; r.readAsDataURL(f); } else { r.onload = ev => { pendingFiles.push({ text: ev.target.result, name: f.name, isText: true }); renderPreviews(); }; r.readAsText(f); } } e.target.value = ''; }
+    function removeImg(i) { pendingImages.splice(i, 1); renderPreviews(); }
+    function removeFile(i) { pendingFiles.splice(i, 1); renderPreviews(); }
+    function renderPreviews() { const bar = document.getElementById('filePreviewBar'); let h = ''; pendingImages.forEach((img, i) => { h += `<div class="preview-item img-preview"><img src="${img.url}"><button class="remove-btn" onclick="removeImg(${i})">✕</button></div>`; }); pendingFiles.forEach((f, i) => { h += `<div class="preview-item file-preview"><span>📄</span><span>${esc(f.name.slice(0, 20))}</span><button class="remove-btn" onclick="removeFile(${i})">✕</button></div>`; }); bar.innerHTML = h; }
+    document.getElementById('chatInput').addEventListener('paste', e => { for (const item of (e.clipboardData?.items || [])) { if (item.type.startsWith('image/')) { e.preventDefault(); const r = new FileReader(); r.onload = ev => { const [h, b] = ev.target.result.split(','); pendingImages.push({ url: ev.target.result, base64: b, mime: h.split(':')[1].split(';')[0], name: 'pasted' }); renderPreviews(); }; r.readAsDataURL(item.getAsFile()); } } });
+
+    // ── Nav ──
+    document.querySelectorAll('.nav-item').forEach(item => { item.addEventListener('click', () => { document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active')); document.querySelectorAll('.panel').forEach(p => p.classList.remove('active')); item.classList.add('active'); document.getElementById('panel-' + item.dataset.panel).classList.add('active'); if (item.dataset.panel === 'dashboard') loadDashboard(); if (item.dataset.panel === 'keys') loadKeys(); if (item.dataset.panel === 'tokens') loadTokens(); if (item.dataset.panel === 'docs') renderDocs(); }); });
+
+    const input = document.getElementById('chatInput');
+    input.addEventListener('input', () => { input.style.height = 'auto'; input.style.height = Math.min(input.scrollHeight, 120) + 'px'; });
+    input.addEventListener('keydown', e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); } });
+
+    // ── Markdown / LaTeX / Code rendering ──
+    function renderMarkdown(text) {
+      if (!text) return '';
+      let html = esc(text);
+      html = html.replace(/```(\w*)\n([\s\S]*?)```/g, (_, lang, code) => { const l = lang || 'code'; const id = 'cb-' + genId(); let h; try { h = lang && hljs.getLanguage(lang) ? hljs.highlight(unesc(code), { language: lang }).value : hljs.highlightAuto(unesc(code)).value; } catch { h = code; } return `<div class="code-block"><div class="code-header"><span class="lang">${l}</span><button class="copy-btn" onclick="copyCode('${id}',this)">Copy</button></div><pre id="${id}"><code>${h}</code></pre></div>`; });
+      html = html.replace(/`([^`\n]+)`/g, '<code>$1</code>');
+      html = html.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+      html = html.replace(/\*(.+?)\*/g, '<em>$1</em>');
+      html = html.replace(/\$\$([\s\S]*?)\$\$/g, (_, tex) => { try { return `<div class="katex-display">${katex.renderToString(unesc(tex), { displayMode: true, throwOnError: false })}</div>`; } catch { return `$$${tex}$$`; } });
+      html = html.replace(/\$([^\$\n]+?)\$/g, (_, tex) => { try { return katex.renderToString(unesc(tex), { throwOnError: false }); } catch { return `$${tex}$`; } });
+      html = html.replace(/\[(\d+)\]/g, '<span class="citation">[$1]</span>');
+      html = html.replace(/^### (.+)$/gm, '<h4 style="margin:10px 0 4px;font-size:14px;color:var(--accent2)">$1</h4>');
+      html = html.replace(/^## (.+)$/gm, '<h3 style="margin:12px 0 6px;font-size:15px;color:var(--text)">$1</h3>');
+      html = html.replace(/^# (.+)$/gm, '<h2 style="margin:14px 0 6px;font-size:17px;color:var(--text)">$1</h2>');
+      html = html.replace(/^[-*] (.+)$/gm, '<li>$1</li>');
+      html = html.replace(/((?:<li>.*<\/li>\n?)+)/g, '<ul style="margin:6px 0 6px 16px">$1</ul>');
+      html = html.replace(/^\d+\. (.+)$/gm, '<li>$1</li>');
+      html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" style="color:var(--cyan)">$1</a>');
+      html = html.replace(/\n\n/g, '</p><p>');
+      html = '<p>' + html + '</p>';
+      html = html.replace(/<p>\s*<\/p>/g, '');
+      return html;
+    }
+    function copyCode(id, btn) { const pre = document.getElementById(id); if (!pre) return; navigator.clipboard.writeText(pre.textContent).then(() => { btn.textContent = '✓ Copied'; btn.classList.add('copied'); setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('copied'); }, 2000); }); }
+    function esc(t) { const d = document.createElement('div'); d.textContent = t; return d.innerHTML; }
+    function unesc(t) { const d = document.createElement('div'); d.innerHTML = t; return d.textContent; }
+
+    // ── Send message ──
+    async function sendMessage() {
+      const text = input.value.trim();
+      if (!text && !pendingImages.length && !pendingFiles.length) return;
+      if (!getSession()) newSession();
+      const session = getSession();
+      const model = document.getElementById('modelSelect').value;
+      const msgsEl = document.getElementById('messages');
+      const empty = msgsEl.querySelector('.empty'); if (empty) empty.remove();
+      const hasAttach = pendingImages.length > 0 || pendingFiles.length > 0;
+      let apiContent;
+      if (hasAttach) {
+        const parts = [];
+        if (text) parts.push({ type: 'text', text });
+        for (const img of pendingImages) parts.push({ type: 'image_url', image_url: { url: `data:${img.mime};base64,${img.base64}` } });
+        for (const f of pendingFiles) { if (f.isText) parts.push({ type: 'text', text: `--- File: ${f.name} ---\n${f.text}\n--- End ---` }); else parts.push({ type: 'image_url', image_url: { url: `data:${f.mime};base64,${f.base64}` } }); }
+        apiContent = parts;
+      } else { apiContent = text; }
+      const attachNames = [...pendingImages.map(i => '📎 ' + i.name), ...pendingFiles.map(f => '📄 ' + f.name)];
+      addMsg('user', text + (attachNames.length ? '\n' + attachNames.join(', ') : ''), null, pendingImages.length ? pendingImages.map(i => i.url) : null);
+      session.messages.push({ role: 'user', content: apiContent });
+      if (session.messages.filter(m => m.role === 'user').length === 1 && text) { session.title = text.slice(0, 35); renderSessions(); }
+      input.value = ''; input.style.height = 'auto'; pendingImages = []; pendingFiles = []; renderPreviews();
+      const typing = document.createElement('div'); typing.className = 'typing'; typing.innerHTML = '<span></span><span></span><span></span>'; msgsEl.appendChild(typing); msgsEl.scrollTop = msgsEl.scrollHeight;
+      document.getElementById('sendBtn').disabled = true;
+      try {
+        const body = { model, messages: session.messages.map(m => ({ role: m.role, content: m.content })) };
+        if (searchEnabled) body.tools = [{ google_search: {} }];
+        const res = await fetch(API + '/v1/chat/completions', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+        typing.remove();
+        const data = await res.json();
+        if (res.ok && data.choices?.length > 0) {
+          const reply = data.choices[0].message.content;
+          const meta = data.hydra_metadata || {};
+          const usage = data.usage || {};
+          const tools = [];
+          if (meta.grounding_metadata) tools.push('🔍 Search');
+          if (meta.fallback_count > 0) tools.push(`🔄 ${meta.fallback_count} fallback${meta.fallback_count > 1 ? 's' : ''}`);
+          session.messages.push({ role: 'assistant', content: reply }); save();
+          addMsg('assistant', reply, { model: MODEL_NAMES[meta.model_used] || meta.model_used || model, key: meta.key_email || '', latency: meta.latency_ms || 0, tokens: usage.total_tokens || 0, tools });
+        } else {
+          const err = '❌ ' + (data.detail?.message || data.detail || JSON.stringify(data));
+          addMsg('assistant', err); session.messages.push({ role: 'assistant', content: err }); save();
+        }
+      } catch (err) { typing.remove(); addMsg('assistant', '❌ Network error: ' + err.message); session.messages.push({ role: 'assistant', content: '❌ ' + err.message }); save(); }
+      document.getElementById('sendBtn').disabled = false;
+    }
+
+    function renderMessages() { const msgsEl = document.getElementById('messages'); const session = getSession(); if (!session || !session.messages.length) { msgsEl.innerHTML = '<div class="empty"><div class="icon">⚡</div><p>Start chatting — Hydra routes to the best available key</p></div>'; return; } msgsEl.innerHTML = ''; for (const m of session.messages) { if (m.role === 'user') { const t = typeof m.content === 'string' ? m.content : (m.content.filter(p => p.type === 'text').map(p => p.text).join('\n') || ''); addMsg('user', t); } else { addMsg('assistant', m.content); } } msgsEl.scrollTop = msgsEl.scrollHeight; }
+
+    function addMsg(role, content, meta, imgs) {
+      const msgsEl = document.getElementById('messages');
+      const div = document.createElement('div'); div.className = 'msg ' + role;
+      const textDiv = document.createElement('div'); textDiv.className = 'msg-text';
+      if (role === 'assistant' && content) textDiv.innerHTML = renderMarkdown(content);
+      else textDiv.textContent = content || '';
+      div.appendChild(textDiv);
+      if (imgs?.length) { const c = document.createElement('div'); c.className = 'msg-images'; for (const u of imgs) { if (u && u.startsWith('data:')) { const img = document.createElement('img'); img.src = u; c.appendChild(img); } } if (c.children.length) div.appendChild(c); }
+      if (meta) { const m = document.createElement('div'); m.className = 'meta'; let html = `<span>🤖 ${meta.model}</span><span>🔑 ${(meta.key || '').split('@')[0]}</span><span>⏱ ${meta.latency}ms</span><span>📊 ${meta.tokens} tok</span>`; for (const t of (meta.tools || [])) html += `<span class="tool-badge">${t}</span>`; m.innerHTML = html; div.appendChild(m); }
+      msgsEl.appendChild(div); msgsEl.scrollTop = msgsEl.scrollHeight;
+    }
+
+    // ── Dashboard ──
+    async function loadDashboard() {
+      try {
+        const [h, s] = await Promise.all([fetch(API + '/health').then(r => r.json()), fetch(API + '/admin/stats').then(r => r.json()).catch(() => null)]);
+        document.getElementById('st-status').textContent = h.status === 'ok' ? 'Online' : 'Down';
+        document.getElementById('st-keys').textContent = h.active_keys;
+        document.getElementById('st-redis').textContent = h.redis_connected ? 'Connected' : 'Down';
+        document.getElementById('st-redis').className = 'value ' + (h.redis_connected ? 'green' : 'red');
+        const mins = Math.floor(h.uptime_seconds / 60), hrs = Math.floor(mins / 60);
+        document.getElementById('st-uptime').textContent = hrs > 0 ? `${hrs}h ${mins % 60}m` : `${mins}m`;
+        if (s) { document.getElementById('st-requests').textContent = s.total_requests || 0; document.getElementById('st-success').textContent = (s.success_rate || 0) + '%'; }
+      } catch { document.getElementById('st-status').textContent = 'Offline'; document.getElementById('st-status').className = 'value red'; }
+    }
+
+    // ── Keys ──
+    async function loadKeys() {
+      try {
+        const data = await fetch(API + '/admin/keys/list').then(r => r.json());
+        const tb = document.getElementById('keysBody');
+        if (!data.keys?.length) { tb.innerHTML = '<tr><td colspan="5" style="color:var(--text3);text-align:center;padding:32px">No keys. Run hydra setup.</td></tr>'; return; }
+        tb.innerHTML = data.keys.map(k => { const hc = k.health_score > 70 ? 'var(--green)' : k.health_score > 30 ? 'var(--yellow)' : 'var(--red)'; const models = (k.available_models || []).map(m => `<span class="model-tag">${MODEL_NAMES[m] || m}</span>`).join(''); return `<tr><td>${esc(k.email)}</td><td><span class="badge ${k.is_active ? 'active' : 'disabled'}">${k.is_active ? 'Active' : 'Off'}</span></td><td><div class="health-bar"><div class="health-bar-fill" style="width:${k.health_score}%;background:${hc}"></div></div>${k.health_score}%</td><td>${models}</td><td style="font-family:monospace;font-size:11px;color:var(--text3)">${k.key_hash.slice(0, 8)}…</td></tr>`; }).join('');
+      } catch (e) { document.getElementById('keysBody').innerHTML = `<tr><td colspan="5" style="color:var(--red);text-align:center">${esc(e.message)}</td></tr>`; }
+    }
+
+    // ── Tokens ──
+    async function loadTokens() {
+      try {
+        const data = await fetch(API + '/admin/tokens/list').then(r => r.json());
+        const tb = document.getElementById('tokensBody');
+        if (!data.tokens?.length) { tb.innerHTML = '<tr><td colspan="6" style="color:var(--text3);text-align:center;padding:32px">No tokens yet. Create one to enable API authentication.</td></tr>'; return; }
+        tb.innerHTML = data.tokens.map(t => {
+          const created = new Date(t.created_at).toLocaleDateString();
+          return `<tr>
+        <td><strong>${esc(t.name)}</strong></td>
+        <td style="font-family:monospace;color:var(--text3)">${esc(t.preview)}</td>
+        <td>${t.total_requests}</td>
+        <td>${t.total_tokens.toLocaleString()}</td>
+        <td>${created}</td>
+        <td><button onclick="deleteToken('${t.id}')" style="background:none;border:1px solid var(--red);color:var(--red);padding:2px 10px;border-radius:4px;font-size:11px;cursor:pointer">Revoke</button></td>
+      </tr>`;
+        }).join('');
+      } catch (e) { document.getElementById('tokensBody').innerHTML = `<tr><td colspan="6" style="color:var(--red);text-align:center">${esc(e.message)}</td></tr>`; }
+    }
+
+    async function createToken() {
+      const name = document.getElementById('tokenName').value.trim() || 'default';
+      try {
+        const res = await fetch(API + '/admin/tokens/create', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name }) });
+        const data = await res.json();
+        if (res.ok) {
+          document.getElementById('tokenReveal').style.display = 'block';
+          document.getElementById('tokenReveal').innerHTML = `
+        <div class="token-reveal">
+          <button class="close-reveal" onclick="this.parentElement.parentElement.style.display='none'">✕</button>
+          <div style="margin-bottom:8px;color:var(--yellow);font-size:12px">⚠️ Save this token — it won't be shown again!</div>
+          <div style="cursor:pointer" onclick="navigator.clipboard.writeText('${data.token}').then(()=>this.style.color='var(--green)')" title="Click to copy">${data.token}</div>
+          <div style="margin-top:8px;color:var(--text3);font-size:11px">Name: ${esc(data.name)} | Click token to copy</div>
+        </div>`;
+          document.getElementById('tokenName').value = '';
+          loadTokens();
+        } else {
+          alert('Error: ' + (data.detail || JSON.stringify(data)));
+        }
+      } catch (e) { alert('Error: ' + e.message); }
+    }
+
+    async function deleteToken(id) {
+      if (!confirm('Revoke this token? Users with this token will lose access.')) return;
+      try {
+        await fetch(API + '/admin/tokens/' + id, { method: 'DELETE' });
+        loadTokens();
+      } catch (e) { alert('Error: ' + e.message); }
+    }
+
+    // ── Docs ──
+    function renderDocs() {
+      document.getElementById('docsContent').innerHTML = `
+<div style="margin-bottom:24px">
+  <img src="/static/logo_complete.png" style="height:56px;border-radius:8px;display:block">
+</div>
+<p>Hydra (GeminiHydra) is an OpenAI-compatible API gateway that pools multiple free-tier Gemini API keys into a single, reliable endpoint with automatic fallback routing.</p>
+
+<h2>🚀 Quick Start</h2>
+<h3>Local Usage</h3>
+<pre><code>curl http://localhost:8000/v1/chat/completions \\
+  -H "Content-Type: application/json" \\
+  -d '{
+    "model": "gemini-2.5-flash",
+    "messages": [{"role": "user", "content": "Hello!"}]
+  }'</code></pre>
+
+<h3>With API Token (when exposed globally)</h3>
+<pre><code>curl https://your-tunnel-url.trycloudflare.com/v1/chat/completions \\
+  -H "Content-Type: application/json" \\
+  -H "Authorization: Bearer hydra-YOUR_TOKEN_HERE" \\
+  -d '{
+    "model": "gemini-2.5-flash",
+    "messages": [{"role": "user", "content": "Hello!"}]
+  }'</code></pre>
+
+<h2>🔌 API Endpoints</h2>
+
+<div class="endpoint">
+  <span class="method post">POST</span><span class="path">/v1/chat/completions</span>
+  <div class="desc">OpenAI-compatible chat. Supports text, images, file attachments, web search, and streaming.</div>
+</div>
+
+<div class="endpoint">
+  <span class="method get">GET</span><span class="path">/v1/models</span>
+  <div class="desc">List available models (OpenAI format). Used by IDEs to populate model dropdowns.</div>
+</div>
+
+<div class="endpoint">
+  <span class="method post">POST</span><span class="path">/v1/embeddings</span>
+  <div class="desc">Generate text embeddings using Gemini embedding model.</div>
+</div>
+
+<div class="endpoint">
+  <span class="method get">GET</span><span class="path">/health</span>
+  <div class="desc">Health check. Returns status, active key count, Redis status, uptime.</div>
+</div>
+
+<div class="endpoint">
+  <span class="method get">GET</span><span class="path">/admin/stats</span>
+  <div class="desc">Today's usage statistics. <em>(localhost only)</em></div>
+</div>
+
+<div class="endpoint">
+  <span class="method get">GET</span><span class="path">/admin/keys/list</span>
+  <div class="desc">List all Gemini API keys in the pool. <em>(localhost only)</em></div>
+</div>
+
+<div class="endpoint">
+  <span class="method post">POST</span><span class="path">/admin/tokens/create</span>
+  <div class="desc">Create API access token. Body: <code>{"name": "my-token"}</code>. <em>(localhost only)</em></div>
+</div>
+
+<div class="endpoint">
+  <span class="method get">GET</span><span class="path">/admin/tokens/list</span>
+  <div class="desc">List all tokens with usage stats. <em>(localhost only)</em></div>
+</div>
+
+<div class="endpoint">
+  <span class="method delete">DELETE</span><span class="path">/admin/tokens/{id}</span>
+  <div class="desc">Revoke an API token. <em>(localhost only)</em></div>
+</div>
+
+<h2>🤖 Available Models</h2>
+<table class="keys-table" style="margin:12px 0">
+  <tr><th>Model ID</th><th>Description</th><th>Free Tier RPD</th></tr>
+  <tr><td><code>gemini-2.5-pro</code></td><td>Smartest free model, best for complex tasks</td><td>100</td></tr>
+  <tr><td><code>gemini-3-flash-preview</code></td><td>Latest Flash generation preview</td><td>50</td></tr>
+  <tr><td><code>gemini-2.5-flash</code></td><td>Best balance of speed and quality</td><td>250</td></tr>
+  <tr><td><code>gemini-2.5-flash-lite</code></td><td>Fastest, highest free limits</td><td>1000</td></tr>
+  <tr><td><code>gemini-2.5-flash-image</code></td><td>Image generation support</td><td>25</td></tr>
+  <tr><td><code>gemini-embedding-001</code></td><td>Text embeddings</td><td>1500</td></tr>
+</table>
+
+<h2>🔄 Streaming</h2>
+<p>Set <code>"stream": true</code> in your request to receive Server-Sent Events (SSE):</p>
+<pre><code>curl http://localhost:8000/v1/chat/completions \\
+  -H "Content-Type: application/json" \\
+  -d '{"model":"gemini-2.5-flash","stream":true,"messages":[{"role":"user","content":"Hi"}]}'</code></pre>
+<p>Response format matches OpenAI's streaming format: <code>data: {"choices":[{"delta":{"content":"..."}}]}</code></p>
+
+<h2>🔗 IDE Integration</h2>
+<div class="note">Hydra is fully OpenAI-compatible. Any tool that supports "OpenAI-compatible" endpoints works with Hydra.</div>
+
+<h3>Cursor IDE</h3>
+<p>Settings → Models → Add OpenAI-compatible model:</p>
+<ul>
+  <li><strong>Base URL:</strong> <code>http://localhost:8000/v1</code> (or your tunnel URL)</li>
+  <li><strong>API Key:</strong> Your Hydra token (from 🎫 Tokens tab)</li>
+  <li><strong>Model:</strong> <code>gemini-2.5-flash</code></li>
+</ul>
+
+<h3>Continue (VS Code)</h3>
+<p>In <code>~/.continue/config.json</code>:</p>
+<pre><code>{
+  "models": [{
+    "provider": "openai",
+    "title": "Gemini via Hydra",
+    "model": "gemini-2.5-flash",
+    "apiBase": "http://localhost:8000/v1",
+    "apiKey": "hydra-YOUR_TOKEN_HERE"
+  }]
+}</code></pre>
+
+<h3>Cline (VS Code)</h3>
+<p>Settings → API Provider → OpenAI Compatible:</p>
+<ul>
+  <li><strong>Base URL:</strong> <code>http://localhost:8000/v1</code></li>
+  <li><strong>API Key:</strong> Your Hydra token</li>
+  <li><strong>Model:</strong> <code>gemini-2.5-flash</code></li>
+</ul>
+
+<h3>Open WebUI</h3>
+<p>Admin → Connections → Add OpenAI-compatible:</p>
+<ul>
+  <li><strong>Base URL:</strong> <code>http://localhost:8000/v1</code></li>
+  <li><strong>API Key:</strong> Your Hydra token</li>
+</ul>
+
+<h3>Python / OpenAI SDK</h3>
+<pre><code>from openai import OpenAI
+
+client = OpenAI(
+    base_url="http://localhost:8000/v1",
+    api_key="hydra-YOUR_TOKEN_HERE"  # or "dummy" for local
+)
+
+response = client.chat.completions.create(
+    model="gemini-2.5-flash",
+    messages=[{"role": "user", "content": "Hello!"}]
+)
+print(response.choices[0].message.content)</code></pre>
+
+<h2>🌐 Global Exposure</h2>
+<p>Expose your Hydra gateway to the internet securely:</p>
+<pre><code>hydra gateway --expose</code></pre>
+<p>This will:</p>
+<ul>
+  <li>Auto-download <code>cloudflared</code> (free, no account needed)</li>
+  <li>Create a secure HTTPS tunnel</li>
+  <li>Auto-generate an API token for remote access</li>
+  <li>Display the public URL and token</li>
+</ul>
+
+<h3>Security Model</h3>
+<div class="warn">⚠️ When exposed globally, the security model is:</div>
+<ul>
+  <li><strong>/v1/* endpoints</strong> — require Bearer token authentication</li>
+  <li><strong>/admin/*</strong> — localhost only (remote users get 403 Forbidden)</li>
+  <li><strong>/ (dashboard)</strong> — localhost only</li>
+  <li><strong>/health</strong> — public (no sensitive data)</li>
+</ul>
+<p>Remote users can ONLY use the API with a valid token. They cannot see your admin panel, API keys, or dashboard.</p>
+
+<h2>⚡ Fallback Routing</h2>
+<p>Hydra's core feature: automatic fallback across keys and models.</p>
+<ul>
+  <li>If a key gets rate-limited (429) → tries next key for same model</li>
+  <li>If 2+ keys fail on same model → blocks that model, tries next model</li>
+  <li>Priority order: 2.5 Pro → 3 Flash → 2.5 Flash → 2.5 Flash-Lite</li>
+  <li>Health scores only decrease on real errors (401/403/500), not rate limits</li>
+</ul>
+
+<h2>🔧 Features</h2>
+<ul>
+  <li>✅ Multi-turn chat with session history</li>
+  <li>✅ Image upload and paste</li>
+  <li>✅ Document upload (PDF, code, text files)</li>
+  <li>✅ Web search (Google grounding)</li>
+  <li>✅ Code blocks with syntax highlighting</li>
+  <li>✅ LaTeX math rendering</li>
+  <li>✅ SSE streaming for IDE compatibility</li>
+  <li>✅ Text embeddings</li>
+  <li>✅ Function calling</li>
+  <li>✅ Structured JSON output</li>
+  <li>✅ API token management</li>
+  <li>✅ Cloudflare tunnel for global access</li>
+</ul>
+`;
+    }
+
+    // ── Status ──
+    async function checkStatus() {
+      try {
+        const d = await fetch(API + '/health', { signal: AbortSignal.timeout(3000) }).then(r => r.json());
+        document.getElementById('statusDot').className = 'status-dot ' + (d.status === 'ok' ? 'online' : 'offline');
+        document.getElementById('statusText').textContent = d.status === 'ok' ? `Online · ${d.active_keys} keys` : 'Offline';
+      } catch { document.getElementById('statusDot').className = 'status-dot offline'; document.getElementById('statusText').textContent = 'Offline'; }
+    }
+
+    // ── Init ──
+    if (!sessions.length) newSession();
+    else if (!activeSessionId || !sessions.find(s => s.id === activeSessionId)) activeSessionId = sessions[0].id;
+    renderSessions(); renderMessages(); checkStatus(); setInterval(checkStatus, 15000);
+  </script>
+</body>
+
+</html>

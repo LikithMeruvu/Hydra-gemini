@@ -1,0 +1,46 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg-info/
+dist/
+build/
+*.egg
+.eggs/
+
+# Virtual environments
+venv/
+.venv/
+env/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Environment
+.env
+keys.json
+
+# OS
+.DS_Store
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Redis
+dump.rdb
+
+# Logs & Debug
+*.log
+cli_help.txt
+import_err.txt
+install_log.txt
+pip_redis.txt
+versions.txt
+docs.md
+.agent/
+.gemini/

@@ -1,0 +1,783 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hydra API Documentation</title>
+    <meta name="description"
+        content="GeminiHydra — The ultimate free-tier Gemini API gateway. OpenAI-compatible, rate-limit immune, and feature-rich.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap"
+        rel="stylesheet">
+    <link rel="icon" type="image/png" href="/static/logo_symbol.png">
+    <style>
+        :root {
+            --bg: #09090b;
+            --surface: #111116;
+            --surface-hover: #181820;
+            --surface2: #1c1c24;
+            --border: #272733;
+            --text: #ecdde6;
+            --text-dim: #9494a8;
+            --accent: #8b5cf6;
+            --accent-glow: rgba(139, 92, 246, 0.15);
+            --success: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --info: #3b82f6;
+            --code-bg: #0e0e12;
+            --radius: 8px;
+            --nav-width: 280px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+        }
+
+        a {
+            color: var(--accent);
+            text-decoration: none;
+            transition: color 0.15s ease;
+        }
+
+        a:hover {
+            color: #a78bfa;
+        }
+
+        code {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.85em;
+            background: var(--surface2);
+            padding: 2px 5px;
+            border-radius: 4px;
+            color: #e2e8f0;
+        }
+
+        /* Layout */
+        .layout {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* Navigation */
+        nav {
+            width: var(--nav-width);
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 100vh;
+            background: var(--surface);
+            border-right: 1px solid var(--border);
+            overflow-y: auto;
+            z-index: 100;
+        }
+
+        .logo {
+            padding: 24px;
+            position: sticky;
+            top: 0;
+            background: var(--surface);
+            border-bottom: 1px solid var(--border);
+            z-index: 10;
+        }
+
+        .logo h2 {
+            font-size: 1.25rem;
+            background: linear-gradient(135deg, var(--accent), #c084fc);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-weight: 700;
+        }
+
+        .logo small {
+            color: var(--text-dim);
+            font-size: 0.75rem;
+            display: block;
+            margin-top: 4px;
+        }
+
+        .nav-group {
+            padding: 24px 16px 8px;
+        }
+
+        .nav-header {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--text-dim);
+            font-weight: 600;
+            padding: 0 12px 8px;
+        }
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            padding: 8px 12px;
+            border-radius: 6px;
+            color: var(--text-dim);
+            font-size: 0.9rem;
+            margin-bottom: 2px;
+        }
+
+        .nav-link:hover {
+            background: var(--surface-hover);
+            color: var(--text);
+        }
+
+        .nav-link.active {
+            background: var(--accent-glow);
+            color: var(--accent);
+            font-weight: 500;
+        }
+
+        /* Main Content */
+        main {
+            margin-left: var(--nav-width);
+            flex: 1;
+            padding: 48px 64px;
+            max-width: 1200px;
+        }
+
+        section {
+            padding-bottom: 64px;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 64px;
+        }
+
+        section:last-child {
+            border-bottom: none;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 16px;
+            background: linear-gradient(to right, #fff, #a1a1aa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        h2 {
+            font-size: 1.75rem;
+            margin: 0 0 24px;
+            color: var(--text);
+            position: relative;
+        }
+
+        h3 {
+            font-size: 1.25rem;
+            margin: 32px 0 16px;
+            color: #e4e4e7;
+        }
+
+        p {
+            margin-bottom: 16px;
+            color: #d4d4d8;
+            max-width: 800px;
+        }
+
+        /* Endpoint Badge */
+        .endpoint {
+            display: flex;
+            align-items: center;
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 12px 16px;
+            margin-bottom: 24px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.9rem;
+        }
+
+        .method {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-weight: 700;
+            margin-right: 12px;
+            font-size: 0.8em;
+        }
+
+        .post {
+            background: rgba(59, 130, 246, 0.15);
+            color: #60a5fa;
+        }
+
+        .get {
+            background: rgba(16, 185, 129, 0.15);
+            color: #34d399;
+        }
+
+        .path {
+            color: var(--text);
+        }
+
+        /* Tables */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 24px 0;
+            font-size: 0.9rem;
+        }
+
+        th {
+            text-align: left;
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--border);
+            color: var(--text-dim);
+            font-weight: 500;
+        }
+
+        td {
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--border);
+            color: var(--text);
+            vertical-align: top;
+        }
+
+        /* Code Blocks */
+        pre {
+            background: var(--code-bg);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 20px;
+            overflow-x: auto;
+            font-size: 0.85rem;
+            position: relative;
+            margin: 16px 0;
+        }
+
+        .lang-badge {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            font-size: 0.65rem;
+            text-transform: uppercase;
+            color: var(--text-dim);
+            opacity: 0.5;
+        }
+
+        /* Tabs */
+        .tabs {
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 1px;
+        }
+
+        .tab {
+            display: inline-block;
+            padding: 10px 20px;
+            cursor: pointer;
+            color: var(--text-dim);
+            font-size: 0.9rem;
+            border-bottom: 2px solid transparent;
+            margin-bottom: -1px;
+        }
+
+        .tab.active {
+            color: var(--accent);
+            border-bottom-color: var(--accent);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Callouts */
+        .callout {
+            padding: 16px 20px;
+            border-radius: var(--radius);
+            border-left: 4px solid;
+            margin: 24px 0;
+            background: var(--surface);
+        }
+
+        .callout.info {
+            border-color: var(--info);
+        }
+
+        .callout.warning {
+            border-color: var(--warning);
+        }
+
+        .callout.success {
+            border-color: var(--success);
+        }
+
+        .callout-title {
+            font-weight: 600;
+            margin-bottom: 4px;
+            display: block;
+        }
+
+        /* Mobile */
+        @media (max-width: 768px) {
+            nav {
+                display: none;
+            }
+
+            main {
+                margin-left: 0;
+                padding: 24px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="layout">
+        <nav>
+            <div class="logo">
+                <img src="/static/logo_complete.png" alt="Hydra API"
+                    style="height:48px;border-radius:6px;display:block">
+            </div>
+            <div class="nav-group">
+                <div class="nav-header">Getting Started</div>
+                <a href="#intro" class="nav-link">Introduction</a>
+                <a href="#auth" class="nav-link">Authentication</a>
+                <a href="#integration" class="nav-link">IDE Integration</a>
+            </div>
+            <div class="nav-group">
+                <div class="nav-header">Capabilities</div>
+                <a href="#chat" class="nav-link">Chat Completions</a>
+                <a href="#structured" class="nav-link">Structured Outputs</a>
+                <a href="#tools" class="nav-link">Function Calling</a>
+                <a href="#vision" class="nav-link">Vision & Audio</a>
+                <a href="#search" class="nav-link">Web Search</a>
+            </div>
+            <div class="nav-group">
+                <div class="nav-header">Reference</div>
+                <a href="#cli" class="nav-link">CLI Reference</a>
+                <a href="#admin" class="nav-link">Admin & Architecture</a>
+                <a href="#models" class="nav-link">Models</a>
+                <a href="#errors" class="nav-link">Errors & Troubleshooting</a>
+            </div>
+        </nav>
+
+        <main>
+            <section id="intro">
+                <h1>Overview</h1>
+                <p>
+                    Hydra (GeminiHydra) is a high-performance **OpenAI-compatible gateway** that aggregates
+                    multiple Google Gemini API keys into a single, reliable endpoint.
+                    It handles <strong>automatic failover, rate-limit rotation, and format conversion</strong> so you
+                    can use state-of-the-art Gemini 2.5/3.0 models with any OpenAI-compatible tool.
+                </p>
+                <div class="callout success">
+                    <span class="callout-title">💡 Why use Hydra?</span>
+                    Get <strong>Access to 20+ Free Tier Projects</strong> simultaneously. If one key hits a rate limit,
+                    Hydra instantly switches to another without interrupting your stream.
+                </div>
+            </section>
+
+            <section id="auth">
+                <h2>🔐 Authentication</h2>
+                <p>All requests require a **Bearer Token** if tokens are configured. If no tokens exist (fresh install),
+                    the API is open.</p>
+
+                <div class="endpoint">
+                    <span class="method">Header</span>
+                    <span class="path">Authorization: Bearer &lt;YOUR_TUI_TOKEN&gt;</span>
+                </div>
+
+                <h3>Managing Tokens</h3>
+                <p>Use the CLI to generate long-lived tokens for your applications:</p>
+                <pre><code class="language-bash"># Create a token named 'cursor'
+hydra tokens create --name cursor
+
+# List active tokens
+hydra tokens list</code></pre>
+            </section>
+
+            <section id="integration">
+                <h2>🛠️ Application & IDE Integration</h2>
+                <p>Hydra is drop-in compatible with the OpenAI SDK. Just change the `base_url` and `api_key`.</p>
+
+                <div class="tabs">
+                    <div class="tab active" onclick="showTab(this, 'sdk-py')">Python SDK</div>
+                    <div class="tab" onclick="showTab(this, 'sdk-js')">Node.js SDK</div>
+                    <div class="tab" onclick="showTab(this, 'cursor')">Cursor / VSCode</div>
+                </div>
+
+                <div id="sdk-py" class="tab-content active">
+                    <pre><code class="language-python">from openai import OpenAI
+
+client = OpenAI(
+    base_url="http://localhost:8001/v1",  # Your Hydra URL
+    api_key="hydra-xxxx..."                 # Your Hydra Token
+)
+
+response = client.chat.completions.create(
+    model="gemini-2.5-flash",
+    messages=[{"role": "user", "content": "Hello!"}]
+)
+print(response.choices[0].message.content)</code></pre>
+                </div>
+
+                <div id="sdk-js" class="tab-content">
+                    <pre><code class="language-javascript">import OpenAI from 'openai';
+
+const client = new OpenAI({
+  baseURL: 'http://localhost:8001/v1',
+  apiKey: 'hydra-xxxx...'
+});
+
+const chat = await client.chat.completions.create({
+  model: 'gemini-2.5-flash',
+  messages: [{ role: 'user', content: 'Hello!' }]
+});
+console.log(chat.choices[0].message.content);</code></pre>
+                </div>
+
+                <div id="cursor" class="tab-content">
+                    <p>In Cursor settings (Command + I settings):</p>
+                    <ol style="margin-left:24px; color:#d4d4d8">
+                        <li>Toggle <strong>OpenAI</strong> endpoint</li>
+                        <li>Set <strong>Base URL</strong> to <code>http://localhost:8001/v1</code></li>
+                        <li>Set <strong>API Key</strong> to your Hydra token</li>
+                        <li>Click "Verify"</li>
+                    </ol>
+                    <p style="margin-top:12px">Now standard models like `gpt-4` will route to Gemini if you alias them,
+                        or simply type `gemini-2.5-flash` in the model box.</p>
+                </div>
+            </section>
+
+            <section id="chat">
+                <h2>💬 Chat Completions</h2>
+                <div class="endpoint">
+                    <span class="method post">POST</span>
+                    <span class="path">/v1/chat/completions</span>
+                </div>
+
+                <h3>Supported Parameters</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th style="width:150px">Parameter</th>
+                            <th>Type</th>
+                            <th>Description</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><code>model</code></td>
+                            <td>string</td>
+                            <td>Required. ID of the model (e.g., <code>gemini-2.5-flash</code>).</td>
+                        </tr>
+                        <tr>
+                            <td><code>messages</code></td>
+                            <td>array</td>
+                            <td>Required. List of message objects.</td>
+                        </tr>
+                        <tr>
+                            <td><code>stream</code></td>
+                            <td>boolean</td>
+                            <td>If true, returns a stream of events (SSE).</td>
+                        </tr>
+                        <tr>
+                            <td><code>response_format</code></td>
+                            <td>object</td>
+                            <td>For JSON mode or Structured Outputs.</td>
+                        </tr>
+                        <tr>
+                            <td><code>tools</code></td>
+                            <td>array</td>
+                            <td>List of function definitions.</td>
+                        </tr>
+                        <tr>
+                            <td><code>thinking</code></td>
+                            <td>object</td>
+                            <td><strong>Gemini Exclusive!</strong> <code>{"thinking_budget": 1024}</code> for reasoning
+                                models.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </section>
+
+            <section id="structured">
+                <h2>🧱 Structured Outputs (JSON Schema)</h2>
+                <p>Force the model to output valid JSON adhering to a specific schema. Essential for extraction tasks.
+                </p>
+
+                <pre><span class="lang-badge">REQUEST</span>{
+  "model": "gemini-2.5-flash",
+  "messages": [{"role": "user", "content": "Extract info from: John Doe, 30 years old."}],
+  "response_format": {
+    "type": "json_schema",
+    "json_schema": {
+      "name": "person_extraction",
+      "schema": {
+        "type": "object",
+        "properties": {
+          "name": {"type": "string"},
+          "age": {"type": "integer"}
+        },
+        "required": ["name", "age"]
+      }
+    }
+  }
+}</pre>
+
+                <div class="callout info">
+                    <span class="callout-title">Schema Support</span>
+                    Hydra converts OpenAI <code>json_schema</code> requests into Gemini's native
+                    <code>responseSchema</code>. This ensures 100% adherence.
+                </div>
+            </section>
+
+            <section id="tools">
+                <h2>⚙️ Function Calling</h2>
+                <p>Define client-side functions the model can invoke. Hydra handles the complex conversion between
+                    OpenAI
+                    and Gemini formats seamlessly.</p>
+
+                <pre><span class="lang-badge">PYTHON EXAMPLE</span>tools = [{
+    "type": "function",
+    "function": {
+        "name": "get_weather",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "location": {"type": "string"}
+            }
+        }
+    }
+}]
+
+# The model will return tool_calls instead of content
+response = client.chat.completions.create(
+    model="gemini-2.5-flash",
+    messages=[{"role": "user", "content": "Weather in London?"}],
+    tools=tools
+)
+
+# Access the tool call
+print(response.choices[0].message.tool_calls[0].function)</pre>
+            </section>
+
+            <section id="vision">
+                <h2>👁️ Vision & Multimodal</h2>
+                <p>Send text, images, and audio in the same request.</p>
+
+                <h3>Image Input (Base64)</h3>
+                <pre><code class="language-json">{
+  "role": "user",
+  "content": [
+    {"type": "text", "text": "Describe this image"},
+    {
+      "type": "image_url", 
+      "image_url": {
+        "url": "data:image/jpeg;base64,/9j/4AAQSkZJRg..."
+      }
+    }
+  ]
+}</code></pre>
+            </section>
+
+            <section id="search">
+                <h2>🌍 Web Search (Grounding)</h2>
+                <p>Enable Google Search grounding to give the model access to real-time information.</p>
+                <pre><code class="language-json">{
+  "model": "gemini-2.5-flash",
+  "messages": [{"role": "user", "content": "Latest news on SpaceX?"}],
+  "tools": [{
+    "google_search": {}  // Special Gemini tool
+  }]
+}</code></pre>
+                <p>The response will include citations in <code>hydra_metadata.grounding_metadata</code>.</p>
+            </section>
+
+            <section id="models">
+                <h2>🤖 Available Models</h2>
+                <p>Hydra automatically detects models available to your keys. Common IDs:</p>
+                <table>
+                    <tr>
+                        <th>Model ID</th>
+                        <th>Context Window</th>
+                        <th>Best For</th>
+                    </tr>
+                    <tr>
+                        <td><code>gemini-2.5-flash</code></td>
+                        <td>1M Tokens</td>
+                        <td>High speed, general tasks, most efficient.</td>
+                    </tr>
+                    <tr>
+                        <td><code>gemini-2.5-pro</code></td>
+                        <td>2M Tokens</td>
+                        <td>Complex reasoning, coding, analysis.</td>
+                    </tr>
+                    <tr>
+                        <td><code>gemini-2.0-flash-thinking-exp</code></td>
+                        <td>32k Tokens</td>
+                        <td>Reasoning, planning, hard logic.</td>
+                    </tr>
+                </table>
+            </section>
+
+            <section id="errors">
+                <h2>⚠️ Troubleshooting & Errors</h2>
+
+                <h3>Common Error Codes</h3>
+                <table>
+                    <tr>
+                        <th>Code</th>
+                        <th>Meaning</th>
+                        <th>Solution</th>
+                    </tr>
+                    <tr>
+                        <td><code>429</code></td>
+                        <td><strong>All Keys Exhausted</strong></td>
+                        <td>All configured keys hit their rate limits. Add more keys or wait ~60s.</td>
+                    </tr>
+                    <tr>
+                        <td><code>401</code></td>
+                        <td><strong>Unauthorized</strong></td>
+                        <td>Check your Bearer token. Ensure you header is `Authorization: Bearer <token>`.</td>
+                    </tr>
+                    <tr>
+                        <td><code>503</code></td>
+                        <td><strong>Gateway Error</strong></td>
+                        <td>The gateway cannot reach Google's servers. Check internet connection.</td>
+                    </tr>
+                </table>
+
+                <div class="callout warning">
+                    <span class="callout-title">Slow Responses?</span>
+                    Gemini 2.5 Pro can be slow. If you need speed, switch to <code>gemini-2.5-flash</code>.
+                </div>
+            </section>
+
+            <section id="cli">
+                <h2>💻 CLI Reference</h2>
+                <p>Full command list for <code>hydra</code>.</p>
+
+                <h3>Core Commands</h3>
+                <table>
+                    <tr>
+                        <th style="width:200px">Command</th>
+                        <th>Description</th>
+                    </tr>
+                    <tr>
+                        <td><code>hydra setup</code></td>
+                        <td>Interactive wizard to validate keys in <code>keys.json</code>.</td>
+                    </tr>
+                    <tr>
+                        <td><code>hydra gateway</code></td>
+                        <td>Start the API server. Use <code>--expose</code> for public URL.</td>
+                    </tr>
+                    <tr>
+                        <td><code>hydra status</code></td>
+                        <td>Live terminal dashboard of requests and key usage.</td>
+                    </tr>
+                </table>
+
+                <h3>Management</h3>
+                <table>
+                    <tr>
+                        <th style="width:200px">Command</th>
+                        <th>Description</th>
+                    </tr>
+                    <tr>
+                        <td><code>hydra keys list</code></td>
+                        <td>Show all configured API keys and their models.</td>
+                    </tr>
+                    <tr>
+                        <td><code>hydra tokens create</code></td>
+                        <td>Generate a new Bearer token for clients.</td>
+                    </tr>
+                    <tr>
+                        <td><code>hydra doctor</code></td>
+                        <td>Check system health (Redis, network, Python version).</td>
+                    </tr>
+                    <tr>
+                        <td><code>hydra logs</code></td>
+                        <td>Tail the access logs.</td>
+                    </tr>
+                </table>
+            </section>
+
+            <section id="admin">
+                <h2>🛡️ Admin & Architecture</h2>
+                <h3>The Dashboard</h3>
+                <p>When the gateway is running, access the dashboard at <a href="/dashboard">/dashboard</a>.</p>
+                <ul>
+                    <li><strong>Visual Stats:</strong> Real-time graph of RPM and Errors.</li>
+                    <li><strong>Key Status:</strong> See which keys are active, rate-limited, or dead.</li>
+                    <li><strong>Token Management:</strong> create/revoke tokens via UI.</li>
+                </ul>
+                <div class="callout warning">
+                    <span class="callout-title">Security Note</span>
+                    The Admin Dashboard is <strong>only accessible via Localhost</strong>. It is blocked on the public
+                    URL for security.
+                </div>
+
+                <h3>Public URL (Tunneling)</h3>
+                <p>
+                    When you run <code>hydra gateway --expose</code>, Hydra downloads a small binary
+                    (<code>cloudflared</code>) to <code>~/.hydra/bin</code>.
+                    It creates a secure, encrypted tunnel to Cloudflare's edge network.
+                </p>
+                <div class="callout info">
+                    <span class="callout-title">GitHub / New Machine Setup</span>
+                    If you clone this repo to a new machine:
+                    <ol>
+                        <li>Install Python 3.10+ and <strong>Redis</strong>.</li>
+                        <li>Run <code>pip install -e .</code></li>
+                        <li>Run <code>hydra setup</code>.</li>
+                        <li>Run <code>hydra gateway --expose</code>.</li>
+                    </ol>
+                    Hydra will <strong>automatically download</strong> the tunnel binary on the first run. No manual
+                    setup required!
+                </div>
+            </section>
+
+            <footer>
+                <p style="font-size:0.8rem; color:var(--text-dim)">
+                    Built with ❤️ by GeminiHydra. <br>
+                    Not affiliated with Google.
+                </p>
+            </footer>
+        </main>
+    </div>
+
+    <script>
+        function showTab(el, tabId) {
+            // Remove active from all tabs in this container
+            const container = el.parentElement;
+            container.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            el.classList.add('active');
+
+            // Hide/Show content
+            const contentContainer = container.nextElementSibling.parentElement;
+            // This logic assumes basic structure. Better to specific IDs.
+            // Simplified for this docs page:
+            document.querySelectorAll('.tab-content').forEach(c => {
+                if (c.parentElement === container.parentElement) c.classList.remove('active');
+            });
+
+            // Actually, referencing by ID is safer for global uniqueness in this simple page
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active');
+
+            // Re-activate correct tab visually (global logic fix)
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            el.classList.add('active');
+        }
+    </script>
+</body>
+
+</html>

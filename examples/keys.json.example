@@ -1,0 +1,12 @@
+[
+  {
+    "email": "user1@gmail.com",
+    "api_key": "AIzaSy_YOUR_KEY_HERE_1",
+    "project_id": "projects/123456789"
+  },
+  {
+    "email": "user2@gmail.com",
+    "api_key": "AIzaSy_YOUR_KEY_HERE_2",
+    "project_id": "projects/987654321"
+  }
+]
