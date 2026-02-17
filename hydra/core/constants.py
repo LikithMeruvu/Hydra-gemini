@@ -44,7 +44,7 @@ ALL_MODELS_SET: set[str] = set(ALL_MODELS)
 MODEL_RATE_LIMITS: dict[str, dict[str, int]] = {
     GEMINI_3_FLASH:        {"rpm": 5,  "rpd": 50,    "tpm": 250_000},
     GEMINI_25_PRO:         {"rpm": 5,  "rpd": 100,   "tpm": 250_000},
-    GEMINI_25_FLASH:       {"rpm": 10, "rpd": 250,   "tpm": 250_000},
+    GEMINI_25_FLASH:       {"rpm": 15, "rpd": 1_500, "tpm": 1_000_000},
     GEMINI_25_FLASH_IMAGE: {"rpm": 10, "rpd": 25,    "tpm": 250_000},
     GEMINI_25_FLASH_LITE:  {"rpm": 15, "rpd": 1_000, "tpm": 250_000},
     GEMINI_EMBEDDING:      {"rpm": 15, "rpd": 1_500, "tpm": 1_000_000},

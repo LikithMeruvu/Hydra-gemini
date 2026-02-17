@@ -238,10 +238,11 @@ async def _generate_with_fallback(request: ChatCompletionRequest) -> dict:
             failed_pairs.add((key_hash, model))
 
             if exc.status_code == 429:
-                failed_models[model] = failed_models.get(model, 0) + 1
-                if failed_models[model] >= 2:
-                    logger.warning("Model %s got 429 on %d keys → BLOCKING", model, failed_models[model])
-                    blocked_models.add(model)
+                # We used to block the model after 2 failures, but for "Unlimited" usage
+                # with many keys, we should just keep trying different keys.
+                # Only if we exhaust ALL keys will AllKeysExhaustedError be raised by router.
+                logger.warning("Model %s got 429 on %s", model, email)
+                pass
             else:
                 await key_service.update_health(key_hash, success=False)
 
