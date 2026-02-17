@@ -70,29 +70,28 @@ Do not create multiple keys in the same project; they share the same quota! Inst
 
 ## 📦 Installation
 
-### ⚡ Zero Dependency (Windows)
-**Recommended for most users.**
-This script automatically downloads Redis (Portable) and sets up everything for you. No manual downloads required.
+### ⚡ Auto-Setup (Recommended)
+Hydra now has a built-in wizard that handles everything (Redis, Keys, etc).
 
-1.  Double-click `install_windows.bat` (It will install Hydra + Redis).
-2.  Follow the on-screen prompts to add your keys.
-3.  Double-click `start.bat` to launch the server.
+1.  **Install Hydra**:
+    ```bash
+    pip install -e .
+    ```
+2.  **Run Onboard**:
+    ```bash
+    hydra onboard
+    ```
+    This command will:
+    -   ✅ Check/Install Redis (if missing).
+    -   ✅ Start Redis in the background.
+    -   ✅ Create/Validate your `keys.json`.
+    -   ✅ Launch the Gateway.
 
-### 🐧 Manual (Mac/Linux/Windows Advanced)
-If the installer fails, you can set it up manually:
-
-**1. Install Redis**
--   **Windows**: Download [Memurai](https://www.memurai.com/get-memurai) or [Redis-x64-5.0.14.1.zip](https://github.com/tporadowski/redis/releases/download/v5.0.14.1/Redis-x64-5.0.14.1.zip). Run `redis-server.exe`.
--   **Mac**: `brew install redis && brew services start redis`
--   **Linux**: `sudo apt install redis-server`
-
-**2. Install Hydra**
-Open a terminal in the project folder:
-```bash
-pip install -e .
-hydra setup --file keys.json
-hydra gateway
-```
+### 🐧 Manual Setup
+If you prefer to do it yourself:
+1.  **Install Redis**: Use `brew`, `apt`, or download manually.
+2.  **Start Redis**: `redis-server`
+3.  **Run Hydra**: `hydra setup --file keys.json` then `hydra gateway`.
 
 ---
 

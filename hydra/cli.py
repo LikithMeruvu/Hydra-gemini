@@ -58,8 +58,10 @@ from hydra.commands.reset import reset_app
 from hydra.commands.dashboard import dashboard_app
 from hydra.commands.doctor import doctor_app
 from hydra.commands.tokens_cmd import tokens_app
+from hydra.commands.onboard import onboard_app
 
 app.add_typer(setup_app, name="setup")
+app.add_typer(onboard_app, name="onboard")
 app.add_typer(gateway_app, name="gateway")
 app.add_typer(status_app, name="status")
 app.add_typer(keys_app, name="keys")
