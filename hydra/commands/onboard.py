@@ -51,8 +51,10 @@ def onboard(
     keys_path = Path(file)
     if not keys_path.exists():
         console.print(f"\n[yellow]⚠️ {file} not found![/yellow]")
-        choice = console.prompt(
-            "Press [bold]C[/bold] to Create a template, or enter a [bold]Path[/bold] to existing keys:",
+        # console.prompt is not a method. Use typer.prompt or Rich Prompt.
+        from rich.prompt import Prompt
+        choice = Prompt.ask(
+            "Press [bold]C[/bold] to Create a template, or enter a [bold]Path[/bold] to existing keys",
             default="C"
         )
         
