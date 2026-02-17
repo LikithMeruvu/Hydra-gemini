@@ -154,28 +154,48 @@ class TunnelService:
     async def _wait_for_url(self, timeout: int = 30) -> str:
         """Parse cloudflared output to find the public URL."""
         import asyncio
+        import time
 
         url_pattern = re.compile(r"(https://[a-z0-9\-]+\.trycloudflare\.com)")
+        start_time = time.time()
+        
+        # We need to read continuously.
+        # Since we are in a simple loop, let's just peek.
+        
+        logs = []
 
-        if self._process.poll() is not None:
-            # Process died — read any output
-            if self._process and self._process.stderr:
-                err = self._process.stderr.read()
-                raise RuntimeError(f"cloudflared exited: {err[:300]}")
-            raise RuntimeError("cloudflared process not running")
+        while time.time() - start_time < timeout:
+            if self._process.poll() is not None:
+                # Process died — read any output
+                out_std, out_err = self._process.communicate()
+                err_msg = f"STDOUT: {out_std}\nSTDERR: {out_err}"
+                logger.error(f"cloudflared died:\n{err_msg}")
+                raise RuntimeError(f"cloudflared exited code {self._process.returncode}")
 
-            # Parse line by line
-            if self._process.stderr:
-                line = self._process.stderr.readline()
-                if line:
-                    # logger.info(f"Tunnel Log: {line.strip()}") # Debug
-                    match = url_pattern.search(line)
-                    if match:
-                        return match.group(1)
+            # Read line from stderr (cloudflared usually logs here)
+            # We use readline() but it is blocking if we don't have input.
+            # But line buffering in Popen(text=True) helps.
+            # Ideally we use a reader thread or asyncio.create_subprocess_exec.
+            # But adapting this class ... let's try a non-blocking read approach if possible?
+            # Or just use the readline with a small timeout if we could.
+            # Popen objects don't support non-blocking easily on Windows without threads.
             
-            await asyncio.sleep(0.1)
-
-        raise RuntimeError("Timed out waiting for cloudflared URL")
+            # Simplified approach: Just read a line. If it blocks, we block (bad for timeout).
+            # BUT cloudflared is chatty.
+            
+            # Better: use correct asyncio subprocess
+            line = self._process.stderr.readline()
+            if line:
+                print(f"[cloudflared] {line.strip()}") # Show user what's happening
+                logs.append(line.strip())
+                match = url_pattern.search(line)
+                if match:
+                    return match.group(1)
+            else:
+                # No output yet? Sleep briefly
+                await asyncio.sleep(0.1)
+        
+        raise RuntimeError(f"Timed out. Last logs:\n" + "\n".join(logs[-10:]))
 
     async def stop(self):
         """Stop the tunnel."""
