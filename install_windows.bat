@@ -35,7 +35,8 @@ if "%ERRORLEVEL%"=="0" (
 ) else (
     if exist "redis\redis-server.exe" (
         echo [*] Starting bundled Redis...
-        start /min "Hydra Redis" redis\redis-server.exe
+        :: Launch visible for debugging
+        start "Hydra Redis (Do Not Close)" redis\redis-server.exe
     ) else (
         echo [!] Redis not found. Downloading Portable Redis...
         
@@ -60,14 +61,15 @@ if "%ERRORLEVEL%"=="0" (
         del redis.zip
         echo [+] Redis installed to ./redis
         echo [*] Starting Redis...
-        start /min "Hydra Redis" redis\redis-server.exe
+        start "Hydra Redis (Do Not Close)" redis\redis-server.exe
     )
     
-    :: Wait and Check for Port 6379
+    :: Wait and Check for Port 6379 (Strict)
     echo [*] Waiting for Redis to start...
     :wait_loop
     timeout /t 1 >nul
-    netstat -an | find "6379" | find "LISTENING" >nul
+    :: Check specifically for :6379 to avoid false positives
+    netstat -an | find ":6379 " | find "LISTENING" >nul
     if %errorlevel% equ 0 goto redis_up
     set /a retries+=1
     if %retries% geq 10 goto redis_fail
@@ -75,7 +77,7 @@ if "%ERRORLEVEL%"=="0" (
 
     :redis_fail
     echo [!] Redis failed to start!
-    echo     Please check if 'redis\redis-server.exe' works manually.
+    echo     Look at the 'Hydra Redis' window for errors.
     pause
     exit /b 1
 

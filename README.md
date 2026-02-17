@@ -78,12 +78,21 @@ This script automatically downloads Redis (Portable) and sets up everything for 
 2.  Follow the on-screen prompts to add your keys.
 3.  Double-click `start.bat` to launch the server.
 
-### 🐧 Manual (Mac/Linux)
-1.  **Install Redis**: `brew install redis` or `sudo apt install redis-server`.
-2.  **Install Hydra**:
-    ```bash
-    pip install -e .
-    ```
+### 🐧 Manual (Mac/Linux/Windows Advanced)
+If the installer fails, you can set it up manually:
+
+**1. Install Redis**
+-   **Windows**: Download [Memurai](https://www.memurai.com/get-memurai) or [Redis-x64-5.0.14.1.zip](https://github.com/tporadowski/redis/releases/download/v5.0.14.1/Redis-x64-5.0.14.1.zip). Run `redis-server.exe`.
+-   **Mac**: `brew install redis && brew services start redis`
+-   **Linux**: `sudo apt install redis-server`
+
+**2. Install Hydra**
+Open a terminal in the project folder:
+```bash
+pip install -e .
+hydra setup --file keys.json
+hydra gateway
+```
 
 ---
 

@@ -6,7 +6,7 @@ tasklist /FI "IMAGENAME eq redis-server.exe" 2>NUL | find /I /N "redis-server.ex
 if "%ERRORLEVEL%"=="1" (
     if exist "redis\redis-server.exe" (
         echo [*] Starting bundled Redis...
-        start /min "Hydra Redis" redis\redis-server.exe
+        start "Hydra Redis (Do Not Close)" redis\redis-server.exe
         timeout /t 2 >nul
     )
 )
