@@ -70,11 +70,13 @@ Do not create multiple keys in the same project; they share the same quota! Inst
 
 ## 📦 Installation
 
-### ⚡ Automatic (Windows)
-Just run the installer script. It will auto-download Redis and set everything up.
-1.  Double-click `install_windows.bat`.
-2.  Follow the prompts.
-3.  Double-click `start.bat` to run.
+### ⚡ Zero Dependency (Windows)
+**Recommended for most users.**
+This script automatically downloads Redis (Portable) and sets up everything for you. No manual downloads required.
+
+1.  Double-click `install_windows.bat` (It will install Hydra + Redis).
+2.  Follow the on-screen prompts to add your keys.
+3.  Double-click `start.bat` to launch the server.
 
 ### 🐧 Manual (Mac/Linux)
 1.  **Install Redis**: `brew install redis` or `sudo apt install redis-server`.
