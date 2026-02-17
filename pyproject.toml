@@ -49,9 +49,9 @@ dev = [
 hydra = "hydra.cli:run"
 
 [project.urls]
-Homepage = "https://github.com/trulyunlimitedgemini/tui"
-Documentation = "https://github.com/trulyunlimitedgemini/tui/docs"
-Repository = "https://github.com/trulyunlimitedgemini/tui"
+Homepage = "https://github.com/LikithMeruvu/Hydra-gemini"
+Documentation = "https://github.com/LikithMeruvu/Hydra-gemini#readme"
+Repository = "https://github.com/LikithMeruvu/Hydra-gemini"
 
 [tool.setuptools.packages.find]
 include = ["hydra*"]
