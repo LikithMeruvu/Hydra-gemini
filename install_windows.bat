@@ -1,6 +1,7 @@
 @echo off
 setlocal
 cd /d "%~dp0"
+set retries=0
 
 echo ╔═══════════════════════════════════════════════╗
 echo ║         ⚡ Hydra One-Click Installer          ║
@@ -37,15 +38,49 @@ if "%ERRORLEVEL%"=="0" (
         start /min "Hydra Redis" redis\redis-server.exe
     ) else (
         echo [!] Redis not found. Downloading Portable Redis...
-        powershell -Command "Invoke-WebRequest -Uri 'https://github.com/tporadowski/redis/releases/download/v5.0.14.1/Redis-x64-5.0.14.1.zip' -OutFile 'redis.zip'"
+        
+        :: Download with TLS 1.2 enforcement
+        powershell -Command "[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; Invoke-WebRequest -Uri 'https://github.com/tporadowski/redis/releases/download/v5.0.14.1/Redis-x64-5.0.14.1.zip' -OutFile 'redis.zip'"
+        
+        if not exist "redis.zip" (
+            echo [!] Failed to download Redis! Check your internet connection.
+            pause
+            exit /b 1
+        )
+
+        echo [*] Extracting Redis...
         powershell -Command "Expand-Archive -Path 'redis.zip' -DestinationPath 'redis' -Force"
+        
+        if not exist "redis\redis-server.exe" (
+            echo [!] Failed to extract Redis!
+            pause
+            exit /b 1
+        )
+
         del redis.zip
         echo [+] Redis installed to ./redis
         echo [*] Starting Redis...
         start /min "Hydra Redis" redis\redis-server.exe
     )
-    :: Wait for Redis to start
-    timeout /t 3 >nul
+    
+    :: Wait and Check for Port 6379
+    echo [*] Waiting for Redis to start...
+    :wait_loop
+    timeout /t 1 >nul
+    netstat -an | find "6379" | find "LISTENING" >nul
+    if %errorlevel% equ 0 goto redis_up
+    set /a retries+=1
+    if %retries% geq 10 goto redis_fail
+    goto wait_loop
+
+    :redis_fail
+    echo [!] Redis failed to start!
+    echo     Please check if 'redis\redis-server.exe' works manually.
+    pause
+    exit /b 1
+
+    :redis_up
+    echo [+] Redis is listening!
 )
 
 :: 4. Run Hydra Setup
