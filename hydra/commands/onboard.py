@@ -95,16 +95,16 @@ def onboard(
 
     # 4. Success & Launch
     console.print("\n[bold green]✅ Onboard Complete![/bold green]")
+    
+    expose_choice = typer.confirm("🌍 Do you want to expose the API to the public internet (Cloudflare Tunnel)?", default=False)
+    
     start_now = typer.confirm("🚀 Do you want to start the API Gateway now?", default=True)
     
     if start_now:
         # Run gateway
         from hydra.commands.gateway import gateway
-        # We invoke the callback function directly
-        # Note: gateway() uses typer.Option defaults if not passed, but we should pass defaults manually if needed.
-        # However, calling it as a python function requires matching signature.
-        # It takes: port, host, reload, expose.
         console.print("[dim]Starting gateway...[/dim]\n")
-        gateway(port=8000, host="127.0.0.1", reload=False, expose=False)
+        gateway(port=8000, host="127.0.0.1", reload=False, expose=expose_choice)
     else:
-        console.print("👋 OK. Run [bold]hydra gateway[/bold] when you are ready.")
+        cmd = "hydra gateway" + (" --expose" if expose_choice else "")
+        console.print(f"👋 OK. Run [bold]{cmd}[/bold] when you are ready.")

@@ -59,7 +59,44 @@ async def download_cloudflared() -> Path:
         return dest
 
     logger.info("Downloading cloudflared from %s ...", url)
+    
+    # Try Winget on Windows first (User Request)
+    if system == "Windows":
+        logger.info("cast: Attempting install via Winget...")
+        try:
+            # Check if winget exists
+            if shutil.which("winget"):
+                # Run install
+                logger.info("Running winget install...")
+                # We use subprocess.run for simplicity in this async function (blocking but short)
+                # or better, do it async?
+                import asyncio
+                proc = await asyncio.create_subprocess_shell(
+                    "winget install --id Cloudflare.cloudflared -e --silent --accept-source-agreements --accept-package-agreements",
+                    stdout=asyncio.subprocess.PIPE,
+                    stderr=asyncio.subprocess.PIPE
+                )
+                stdout, stderr = await proc.communicate()
+                if proc.returncode == 0:
+                    logger.info("✅ Winget install success.")
+                    # Try to find it now.
+                    # It might need a path refresh. common loc: "C:\Program Files (x86)\cloudflared\cloudflared.exe"
+                    # or "C:\Program Files\cloudflared\cloudflared.exe"
+                    candidates = [
+                        Path(r"C:\Program Files (x86)\cloudflared\cloudflared.exe"),
+                        Path(r"C:\Program Files\cloudflared\cloudflared.exe"),
+                        Path(shutil.which("cloudflared") or "")
+                    ]
+                    for c in candidates:
+                        if c.exists() and c.is_file():
+                            return c
+                    logger.warning("Winget installed but binary not found in common paths.")
+                else:
+                    logger.warning(f"Winget failed: {stderr.decode().strip()[:200]}")
+        except Exception as e:
+             logger.warning(f"Winget attempt error: {e}")
 
+    # Fallback to direct download
     import httpx
     async with httpx.AsyncClient(follow_redirects=True, timeout=60) as client:
         resp = await client.get(url)
@@ -120,12 +157,12 @@ class TunnelService:
 
         url_pattern = re.compile(r"(https://[a-z0-9\-]+\.trycloudflare\.com)")
 
-            if self._process.poll() is not None:
-                # Process died — read any output
-                if self._process and self._process.stderr:
-                    err = self._process.stderr.read()
-                    raise RuntimeError(f"cloudflared exited: {err[:300]}")
-                raise RuntimeError("cloudflared process not running")
+        if self._process.poll() is not None:
+            # Process died — read any output
+            if self._process and self._process.stderr:
+                err = self._process.stderr.read()
+                raise RuntimeError(f"cloudflared exited: {err[:300]}")
+            raise RuntimeError("cloudflared process not running")
 
             # Parse line by line
             if self._process.stderr:
