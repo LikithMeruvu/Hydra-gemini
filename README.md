@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="hydra/api/static/logo_complete.png" alt="Hydra Logo" height="100"/>
+  <img src="hydra/api/static/logo_complete.png" alt="Hydra Logo" height="120"/>
   <br/><br/>
 
   [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
@@ -8,76 +8,76 @@
   [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](http://makeapullrequest.com)
 
   <h3>Unlimited Free-Tier Gemini API Gateway</h3>
-  <p>Route requests to 20+ free keys with automatic failover, rate-limit rotation, and full OpenAI compatibility.</p>
+  <p><strong>Route requests to 20+ free keys with automatic failover, rate-limit rotation, and full OpenAI compatibility.</strong></p>
 </div>
 
 ---
 
 ## 📖 Table of Contents
 - [✨ Features](#-features)
-- [🚀 Quick Start](#-quick-start)
+- [🔑 The Strategy (Unlimited Free Tier)](#-the-strategy-unlimited-free-tier)
 - [📦 Installation](#-installation)
+- [⚙️ Configuration (keys.json)](#️-configuration-keysjson)
+- [🚀 Quick Start](#-quick-start)
 - [🔐 Authentication](#-authentication)
-- [🛠️ Integration (SDKs & IDEs)](#️-integration-sdks--ides)
 - [🔌 API Reference](#-api-reference)
 - [🤖 Advanced Features](#-advanced-features)
 - [🛡️ Admin & Tunneling](#️-admin--tunneling)
 - [⚠️ Troubleshooting](#️-troubleshooting)
-- [🤝 Contributing](#-contributing)
-- [📄 License](#-license)
 
 ---
 
 ## ✨ Features
 - **Unlimited Usage**: Aggregate multiple free-tier keys (15 RPM each) into a single high-throughput endpoint.
-- **Failover & Rotation**: Automatically detects rate limits (`429`) and switches to the next healthy key instantly.
-- **OpenAI Compatible**: Drop-in replacement for `openai-python`, `openai-node`, and tools like Cursor/VSCode.
-- **Multi-Model Support**: Access `gemini-2.5-flash`, `gemini-2.5-pro`, and reasoning models like `gemini-2.0-flash-thinking`.
-- **Advanced Capabilities**: Supports **Vision** (Images), **Function Calling** (Tool Use), and **Web Search**.
-- **Admin Dashboard**: Visual interface to monitor key health, usage stats, and manage tokens.
-- **Secure Tunneling**: Built-in Cloudflare Tunnel to expose your localhost gateway to the internet safely.
+- **Failover & Rotation**: Automatically detects `429` (Rate Limit) and switches to the next healthy key instantly.
+- **OpenAI Compatible**: Drop-in replacement for `openai` SDKs, Cursor, VS Code, and LangChain.
+- **Smart Routing**: Supports `gemini-2.5-flash`, `gemini-2.5-pro`, and `gemini-2.0-flash-thinking` with improved reasoning.
+- **Visual Dashboard**: Monitor key health, RPM, and errors in real-time.
+- **Secure Tunneling**: Expose your localhost API to the internet via Cloudflare Tunnel.
 
 ---
 
-## 🚀 Quick Start
-Get up and running in 2 minutes.
+## 🔑 The Strategy (Unlimited Free Tier)
 
-### 1. Install
-```bash
-pip install -e .
-```
+### The "Secret" to Unlimited Usage
+Google's Gemini API free tier has a limit of **15 Requests Per Minute (RPM)** and **1,500 Requests Per Day** per **Google Cloud Project**.
 
-### 2. Configure Keys
-Create `keys.json` with your Google AI Studio keys:
-```json
-[
-  {"email": "account1@gmail.com", "api_key": "AIzaSy...", "project_id": "proj-1"},
-  {"email": "account2@gmail.com", "api_key": "AIzaSy...", "project_id": "proj-2"}
-]
-```
+**Crucial Insight:** The limit applies to the *Project*, NOT your Google Account.
+You can create multiple projects under one Google Account.
 
-### 3. Run
-```bash
-# Verify setup
-hydra setup --file keys.json
+**✅ The Golden Rule:**
+> **ONE API KEY per PROJECT.**
 
-# Start Gateway
-hydra gateway
-```
-Your API is now live at `http://localhost:8000/v1`.
+Do not create multiple keys in the same project; they share the same quota! Instead:
+1.  Create **Project A** -> Get Key A.
+2.  Create **Project B** -> Get Key B.
+3.  Hydra pools them together. 10 Projects = 150 RPM (Enterprise Grade).
+
+### Step-by-Step Guide
+1.  Go to [Google AI Studio](https://aistudio.google.com/).
+2.  Click **Get API key**.
+3.  Click **Create API key in new project**.
+4.  Copy the key.
+5.  **Repeat steps 2-4** as many times as you want (e.g., 10-20 times).
+6.  Save all keys into your `keys.json` file.
+
+**Quota Notes:**
+-   **Unverified Accounts**: Can create ~10-12 projects.
+-   **Billing Enabled/Verified**: Can create ~25+ projects.
+-   **Multiple Accounts**: You can use tokens from different Gmail accounts in the same `keys.json`.
 
 ---
 
 ## 📦 Installation
-Requirements: Python 3.10+ and Redis.
 
-### 1. Redis (Required)
-Hydra uses Redis for high-speed state management and rate limiting.
-- **Windows**: Install via WSL or use [Memurai](https://www.memurai.com/).
-- **Mac**: `brew install redis`
-- **Linux**: `apt install redis-server`
+### Prerequisites
+-   **Python 3.10+**
+-   **Redis Server**: Hydra uses Redis for high-speed rate tracking.
+    -   **Windows**: Install via WSL or use [Memurai](https://www.memurai.com/) / Docker.
+    -   **Mac**: `brew install redis`
+    -   **Linux**: `sudo apt install redis-server`
 
-### 2. Install Hydra
+### Install Hydra
 ```bash
 git clone https://github.com/LikithMeruvu/Hydra-gemini.git
 cd Hydra-gemini
@@ -86,21 +86,80 @@ pip install -e .
 
 ---
 
-## 🔐 Authentication
-By default, the API is open if no tokens are configured. To secure it:
+## ⚙️ Configuration (keys.json)
 
-```bash
-# Generate a token
-hydra tokens create --name my-app
-# Output: hydra-sk-12345...
+Create a file named `keys.json` in the root directory. This is where you store your pool of keys.
+
+### Structure
+```json
+[
+  {
+    "email": "primary@gmail.com", 
+    "api_key": "AIzaSy_KEY_1...", 
+    "project_id": "my-project-001"
+  },
+  {
+    "email": "primary@gmail.com",
+    "api_key": "AIzaSy_KEY_2...",
+    "project_id": "my-project-002"
+  },
+  {
+    "email": "secondary@gmail.com",
+    "api_key": "AIzaSy_KEY_3...",
+    "project_id": "other-project-x"
+  }
+]
 ```
 
-Send this token in the header:
-`Authorization: Bearer hydra-sk-12345...`
+### Fields
+| Field | Description | Importance |
+|---|---|---|
+| `email` | Just a label for you to identify the account owner. | Optional (but recommended) |
+| `api_key` | The actual API key starting with `AIzaSy`. | **REQUIRED** |
+| `project_id` | Should be unique per key for maximum quota. | Optional (Label) |
 
 ---
 
-## 🛠️ Integration (SDKs & IDEs)
+## 🚀 Quick Start
+
+1.  **Validate Keys**:
+    Use the setup wizard to test your keys before running.
+    ```bash
+    hydra setup --file keys.json
+    ```
+
+2.  **Start Gateway**:
+    ```bash
+    hydra gateway
+    ```
+    Your API is now live at: `http://localhost:8000/v1`
+
+---
+
+## 🔐 Authentication
+
+By default (fresh install), the API is **Open**. Anyone can use it.
+To secure it, you generate **Access Tokens**.
+
+**Note:** Hydra tokens are NOT `sk-` keys. They can be any string, but we recommend letting Hydra generate secure UUIDs.
+
+```bash
+# Create a token description 'cursor-ide'
+hydra tokens create --name cursor-ide
+# Output: hydra-8f3a2b1c-.... (Your Secure Token)
+
+# List active tokens
+hydra tokens list
+```
+
+Add the header to your requests:
+`Authorization: Bearer hydra-8f3a2b1c-...`
+
+---
+
+## 🔌 API Reference
+
+Hydra is 100% OpenAI-compatible.
 
 ### Python (OpenAI SDK)
 ```python
@@ -108,14 +167,16 @@ from openai import OpenAI
 
 client = OpenAI(
     base_url="http://localhost:8000/v1",
-    api_key="hydra-sk-..."
+    api_key="hydra-8f3a..."  # Your Hydra Token
 )
 
 response = client.chat.completions.create(
     model="gemini-2.5-flash",
-    messages=[{"role": "user", "content": "Hello!"}]
+    messages=[{"role": "user", "content": "Hello!"}],
+    stream=True
 )
-print(response.choices[0].message.content)
+for chunk in response:
+    print(chunk.choices[0].delta.content or "", end="")
 ```
 
 ### Node.js
@@ -124,45 +185,32 @@ import OpenAI from 'openai';
 
 const client = new OpenAI({
     baseURL: 'http://localhost:8000/v1',
-    apiKey: 'hydra-sk-...'
+    apiKey: 'hydra-8f3a...'
 });
 ```
 
-### Cursor / VS Code (Cline)
-1. Go to Settings > Models.
-2. Add **OpenAI** (or generic) endpoint.
-3. Base URL: `http://localhost:8000/v1`.
-4. API Key: Your Hydra token.
-5. Model Name: `gemini-2.5-flash`.
-
----
-
-## 🔌 API Reference
-
-### Chat Completions
-`POST /v1/chat/completions`
-- **Streaming**: Supported (`stream=True`).
-- **Models**: `gemini-2.5-flash`, `gemini-2.5-pro`, `gemini-2.0-flash-thinking-exp`.
-
-### List Models
-`GET /v1/models`
-Returns all available Gemini models detectable by your keys.
+### Supported Models
+-   `gemini-2.5-flash` (Fast, efficient)
+-   `gemini-2.5-pro` (Reasoning, coding)
+-   `gemini-2.0-flash-thinking-exp` (Thinking model)
+-   *Any new model Google releases is automatically supported.*
 
 ---
 
 ## 🤖 Advanced Features
 
-### 👁️ Vision (Image Input)
-Send images as Base64 or URLs.
+### 👁️ Vision (Multimodal)
+Send images using standard OpenAI format (URL or Base64).
+
 ```python
 response = client.chat.completions.create(
-    model="gemini-2.5-pro",
+    model="gemini-2.5-flash",
     messages=[
         {
             "role": "user",
             "content": [
-                {"type": "text", "text": "What is in this image?"},
-                {"type": "image_url", "image_url": {"url": "data:image/jpeg;base64,..."}}
+                {"type": "text", "text": "What's in this image?"},
+                {"type": "image_url", "image_url": {"url": "https://example.com/image.jpg"}}
             ]
         }
     ]
@@ -170,21 +218,28 @@ response = client.chat.completions.create(
 ```
 
 ### ⚙️ Function Calling (Tool Use)
-Hydra translates OpenAI tool definitions into Gemini's format.
+Define tools in Python/JS, and Hydra converts them for Gemini.
+
 ```python
 tools = [{
     "type": "function",
     "function": {
         "name": "get_weather",
-        "parameters": {"type": "object", "properties": {"city": {"type": "string"}}}
+        "parameters": {
+            "type": "object",
+            "properties": {"location": {"type": "string"}}
+        }
     }
 }]
-# Call with tools=tools using standard OpenAI SDK
+
+# Hydra handles the translation automatically
+client.chat.completions.create(..., tools=tools)
 ```
 
 ### 🌍 Web Search (Grounding)
-Enable Google Search grounding by adding a special tool:
+Enable Google's real-time search grounding by passing a special tool.
 ```json
+// In your raw request or tool definition
 "tools": [{"google_search": {}}]
 ```
 
@@ -192,41 +247,37 @@ Enable Google Search grounding by adding a special tool:
 
 ## 🛡️ Admin & Tunneling
 
-### The Dashboard
-Visit `http://localhost:8000/dashboard` to see:
-- Real-time Request/Minute (RPM) graph.
-- Health status of every API key.
-- Token management UI.
+### Admin Dashboard (`/dashboard`)
+Access `http://localhost:8000/dashboard` to view:
+-   **RPM Graph**: Live traffic monitoring.
+-   **Key Status**: Which keys are healthy (green), limited (yellow), or dead (red).
+-   **Token Manager**: Revoke access instantly.
 
-### Public Exposure (Tunneling)
-Want to use Hydra from a Vercel app or a different network?
+> **Security**: The Dashboard is accessible **ONLY via Localhost**. It is blocked on public URLs.
+
+### Public Access (Tunneling)
+Want to use Hydra from a mobile app or a friend's computer?
 ```bash
 hydra gateway --expose
 ```
-This automatically downloads `cloudflared` and gives you a secure `https://...` URL.
+Hydra downloads `cloudflared` and creates a minimal secure tunnel.
+You will get a URL like: `https://cool-name.trycloudflare.com`
+Use this URL as your `base_url`.
 
 ---
 
 ## ⚠️ Troubleshooting
 
-| Error | Meaning | Fix |
+| Error Code | Meaning | Solution |
 |---|---|---|
-| `429` | All keys exhausted | Add more keys to `keys.json` or wait 60s. |
-| `401` | Unauthorized | Check your `Authorization: Bearer` header. |
-| `503` | Gateway Error | Check your internet connection (Google API unreachable). |
+| `429` | Rate Limit | All your keys are exhausted. Add more projects/keys! |
+| `401` | Unauthorized | Your `Authorization` header is missing or invalid. Check `hydra tokens list`. |
+| `503` | Gateway Error | Hydra can't reach Google. Check your internet connection. |
 
-**Logs**: Run `hydra logs` to see detailed error traces.
-
----
-
-## 🤝 Contributing
-1. Fork the repo.
-2. Create a branch (`git checkout -b feature/amazing`).
-3. Commit changes (`git commit -m 'Add amazing feature'`).
-4. Push (`git push origin feature/amazing`).
-5. Open a Pull Request.
+**Logs:**
+Check `hydra.log` or run `hydra logs` in the terminal to see exactly which key failed and why.
 
 ---
-
-## 📄 License
-MIT License. See [LICENSE](LICENSE) for details.
+<div align="center">
+Built with ❤️ by the Open Source Community
+</div>
