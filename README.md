@@ -126,11 +126,15 @@ Create a file named `keys.json` in the root directory. This is where you store y
     Use the setup wizard to test your keys before running.
     ```bash
     hydra setup --file keys.json
+    # OR if 'hydra' command fails:
+    python -m hydra setup --file keys.json
     ```
 
 2.  **Start Gateway**:
     ```bash
     hydra gateway
+    # OR
+    python -m hydra gateway
     ```
     Your API is now live at: `http://localhost:8000/v1`
 
@@ -273,9 +277,10 @@ Use this URL as your `base_url`.
 | `429` | Rate Limit | All your keys are exhausted. Add more projects/keys! |
 | `401` | Unauthorized | Your `Authorization` header is missing or invalid. Check `hydra tokens list`. |
 | `503` | Gateway Error | Hydra can't reach Google. Check your internet connection. |
+| `Command Not Found` | `'hydra' is not recognized` | **Windows Issue**: Python Scripts folder is not in your PATH. <br> **Fix**: Use `python -m hydra` instead of `hydra`. Example: `python -m hydra gateway`. |
 
 **Logs:**
-Check `hydra.log` or run `hydra logs` in the terminal to see exactly which key failed and why.
+Check `hydra.log` or run `hydra logs` (or `python -m hydra logs`) in the terminal.
 
 ---
 <div align="center">
