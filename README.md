@@ -277,10 +277,7 @@ Use this URL as your `base_url`.
 | `429` | Rate Limit | All your keys are exhausted. Add more projects/keys! |
 | `401` | Unauthorized | Your `Authorization` header is missing or invalid. Check `hydra tokens list`. |
 | `503` | Gateway Error | Hydra can't reach Google. Check your internet connection. |
-| `Command Not Found` | `'hydra' is not recognized` | **Windows Issue**: Python Scripts folder is not in your PATH. <br> **Fix**: Use `python -m hydra` instead of `hydra`. Example: `python -m hydra gateway`. |
-
-**Logs:**
-Check `hydra.log` or run `hydra logs` (or `python -m hydra logs`) in the terminal.
+| `Command Not Found` | `'hydra' is not recognized` | **Fix 1 (Easy)**: Use `python -m hydra`.<br>**Fix 2 (Global)**: Add your Python Scripts to PATH.<br>Run this in PowerShell: `[Environment]::SetEnvironmentVariable("Path", $env:Path + ";$env:APPDATA\Python\Python310\Scripts", "User")` (Adjust version).
 
 ---
 <div align="center">
